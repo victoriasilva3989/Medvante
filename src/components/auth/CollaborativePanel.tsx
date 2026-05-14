@@ -4,11 +4,7 @@ import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import type { Collaborator } from '../../types'
 
-const mockCollaborators: Collaborator[] = [
-  { id: 'c1', nome: 'Suporte Medvante', email: 'suporte@medvante.com.br', role: 'support', masterUserId: '1', permissions: ['dashboard', 'financeiro', 'pipeline', 'glosas'], lastAccess: '12/05/2026 14:30', active: true },
-  { id: 'c2', nome: 'Consultor Felipe', email: 'felipe@medvante.com.br', role: 'collaborator', masterUserId: '1', permissions: ['dashboard', 'financeiro', 'pipeline'], lastAccess: '11/05/2026 09:15', active: true },
-  { id: 'c3', nome: 'Ana (Recepção)', email: 'ana@clinicamendes.com.br', role: 'collaborator', masterUserId: '1', permissions: ['atendimentos', 'recepcao'], lastAccess: '10/05/2026 17:45', active: false },
-]
+const mockCollaborators: Collaborator[] = []
 
 export function CollaborativePanel() {
   const { user, setCollaborativeMode, activeCollaborator, setActiveCollaborator } = useAuthStore()
@@ -60,25 +56,7 @@ export function CollaborativePanel() {
         <div className="px-3 mt-4">
           <p className="text-[10px] uppercase tracking-wider text-text-on-dark2/50 font-medium mb-2 px-1">Clientes em suporte</p>
           <div className="space-y-2">
-            {[
-              { nome: 'Dr. Carlos Mendes', crm: '123456-SP', status: 'online' },
-              { nome: 'Clínica Dermatovita', crm: '789012-RJ', status: 'offline' },
-              { nome: 'Dra. Lucia Alvarez', crm: '345678-MG', status: 'online' },
-            ].map((client) => (
-              <button
-                key={client.nome}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer text-left"
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-mid/30 flex items-center justify-center text-xs font-medium text-text-on-dark">
-                  {client.nome.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-text-on-dark truncate">{client.nome}</p>
-                  <p className="text-[10px] text-text-on-dark2/60">{client.crm}</p>
-                </div>
-                <div className={`w-2 h-2 rounded-full ${client.status === 'online' ? 'bg-success' : 'bg-text-muted'}`} />
-              </button>
-            ))}
+            <p className="text-xs text-text-on-dark2/60 px-1 py-4 text-center">Nenhum cliente em suporte no momento.</p>
           </div>
         </div>
       )}

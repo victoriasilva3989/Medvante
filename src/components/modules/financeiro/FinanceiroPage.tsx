@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card } from '../../ui/Card'
 import { Table } from '../../ui/Table'
 import { Badge } from '../../ui/Badge'
@@ -15,6 +15,7 @@ import {
   Banknote, Calendar, Clock, FileText, PiggyBank, Download
 } from 'lucide-react'
 import { useFaturamentoStore } from '../../../store/faturamentoStore'
+import { toast } from '../../../hooks/useToast'
 
 const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gold'> = {
   recebido: 'green', pago: 'green', conciliado: 'green', ativo: 'green',
@@ -53,11 +54,26 @@ export function FinanceiroPage() {
   const saldo = receitas - despesas
   const pendenteReceber = contasReceber.filter(c => c.status === 'pendente' || c.status === 'parcial' || c.status === 'atrasado').reduce((a, b) => a + b.valor, 0)
   const pendentePagar = contasPagar.filter(c => c.status === 'pendente' || c.status === 'parcial' || c.status === 'atrasado').reduce((a, b) => a + b.valor, 0)
-  const atrasoCritico = contasReceber.filter(c => c.diasAtraso >= 90)
+  const calcularDiasAtraso = (vencimento: string, status: string) => {
+    if (status === 'recebido' || status === 'pago') return 0
+    if (!vencimento) return 0
+    const hoje = new Date()
+    const venc = new Date(vencimento + 'T23:59:59')
+    const diff = Math.floor((hoje.getTime() - venc.getTime()) / (1000 * 60 * 60 * 24))
+    return Math.max(0, diff)
+  }
+
+  const atrasoCritico = contasReceber.filter(c => calcularDiasAtraso(c.vencimento, c.status) >= 90)
   const saldoProjetado = saldo + pendenteReceber - pendentePagar
+
+  useEffect(() => {
+    setContasReceber(prev => prev.map(c => ({ ...c, diasAtraso: calcularDiasAtraso(c.vencimento, c.status) })))
+    setContasPagar(prev => prev.map(c => ({ ...c, diasAtraso: calcularDiasAtraso(c.vencimento, c.status) })))
+  }, [])
 
   // Contas a Receber CRUD
   const handleAddReceber = () => {
+    if (!recForm.paciente || !recForm.valor) { toast('Preencha paciente e valor', 'error'); return }
     const nova: ContaReceber = {
       id: 'cr' + Date.now(),
       paciente: recForm.paciente,
@@ -68,12 +84,14 @@ export function FinanceiroPage() {
       emissao: recForm.emissao,
       vencimento: recForm.vencimento,
       status: 'pendente',
-      diasAtraso: 0,
+      diasAtraso: calcularDiasAtraso(recForm.vencimento, 'pendente'),
     }
     if (editRecId) {
       setContasReceber(prev => prev.map(c => c.id === editRecId ? { ...c, ...nova } : c))
+      toast('Conta atualizada', 'success')
     } else {
       setContasReceber(prev => [...prev, nova])
+      toast('Conta a receber criada', 'success')
     }
     setShowReceberModal(false)
     setEditRecId(null)
@@ -88,14 +106,21 @@ export function FinanceiroPage() {
 
   const handleDeleteReceber = (id: string) => {
     setContasReceber(prev => prev.filter(c => c.id !== id))
+    toast('Conta removida', 'info')
   }
 
   const handleToggleReceberStatus = (id: string) => {
-    setContasReceber(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'recebido' ? 'pendente' : 'recebido', diasAtraso: c.status === 'recebido' ? c.diasAtraso : 0 } : c))
+    setContasReceber(prev => prev.map(c => {
+      if (c.id !== id) return c
+      const novoStatus = c.status === 'recebido' ? 'pendente' : 'recebido'
+      return { ...c, status: novoStatus, diasAtraso: calcularDiasAtraso(c.vencimento, novoStatus) }
+    }))
+    toast('Status alterado', 'success')
   }
 
   // Contas a Pagar CRUD
   const handleAddPagar = () => {
+    if (!pagForm.descricao || !pagForm.valor) { toast('Preencha descrição e valor', 'error'); return }
     const nova: ContaPagar = {
       id: 'cp' + Date.now(),
       descricao: pagForm.descricao,
@@ -104,12 +129,14 @@ export function FinanceiroPage() {
       vencimento: pagForm.vencimento,
       fornecedor: pagForm.fornecedor,
       status: 'pendente',
-      diasAtraso: 0,
+      diasAtraso: calcularDiasAtraso(pagForm.vencimento, 'pendente'),
     }
     if (editPagId) {
       setContasPagar(prev => prev.map(c => c.id === editPagId ? { ...c, ...nova } : c))
+      toast('Conta atualizada', 'success')
     } else {
       setContasPagar(prev => [...prev, nova])
+      toast('Conta a pagar criada', 'success')
     }
     setShowPagarModal(false)
     setEditPagId(null)
@@ -127,7 +154,12 @@ export function FinanceiroPage() {
   }
 
   const handleTogglePagarStatus = (id: string) => {
-    setContasPagar(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'pago' ? 'pendente' : 'pago', diasAtraso: c.status === 'pago' ? c.diasAtraso : 0 } : c))
+    setContasPagar(prev => prev.map(c => {
+      if (c.id !== id) return c
+      const novoStatus = c.status === 'pago' ? 'pendente' : 'pago'
+      return { ...c, status: novoStatus, diasAtraso: calcularDiasAtraso(c.vencimento, novoStatus) }
+    }))
+    toast('Status alterado', 'success')
   }
 
   // DMED Export

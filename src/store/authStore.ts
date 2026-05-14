@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, Collaborator } from '../types'
 
+const TOKEN_KEY = 'medvante-token'
+
 export interface MockClient {
   id: string
   nome: string
@@ -45,12 +47,23 @@ interface AuthState {
   getPasswordForEmail: (email: string) => string | null
 }
 
+function isTokenValid(): boolean {
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (!token) return false
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp * 1000 > Date.now()
+  } catch {
+    return false
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
   user: null,
   collaborators: [],
-  isAuthenticated: false,
+  isAuthenticated: isTokenValid(),
   isCollaborativeMode: false,
   activeCollaborator: null,
   originalUser: null,
@@ -58,89 +71,80 @@ export const useAuthStore = create<AuthState>()(
   registeredUsers: [],
 
   login: async (email: string, password: string) => {
-    const allowedLogins: Record<string, { nome: string; role: User['role']; crm?: string; especialidade?: string }> = {
-      'admin@medvante.com.br': { nome: 'Admin', role: 'admin', crm: '000000', especialidade: 'Administrador' },
-      'suporte@medvante.com.br': { nome: 'Suporte Medvante', role: 'support' },
-      'produtor@medvante.com.br': { nome: 'Produtor Medvante', role: 'producer' },
-    }
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }
+      )
 
-    if (allowedLogins[email]) {
-      const demoPasswords: Record<string, string> = {
-        'admin@medvante.com.br': 'admin123',
-        'produtor@medvante.com.br': 'produtor123',
-        'suporte@medvante.com.br': 'suporte123',
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Email ou senha inválidos' }))
+        throw new Error(err.error || 'Email ou senha inválidos')
       }
-      if (demoPasswords[email] !== password) return false
-      const info = allowedLogins[email]
-      set({
-        user: {
-          id: email,
-          nome: info.nome,
-          email,
-          role: info.role,
-          crm: info.crm,
-          especialidade: info.especialidade,
-          planStatus: 'active',
-          planType: 'clinic',
-        } as User,
-        isAuthenticated: true,
-        originalUser: null,
-        impersonatedClient: null,
-      })
-      return true
-    }
 
-    const registered = get().registeredUsers.find(u => u.email === email && u.password === password)
-    if (registered) {
+      const data = await res.json()
+      localStorage.setItem(TOKEN_KEY, data.token)
+
       set({
         user: {
-          id: email,
-          nome: email.split('@')[0],
-          email,
-          role: 'doctor',
+          id: data.user.email,
+          nome: data.user.nome,
+          email: data.user.email,
+          role: data.user.role || 'doctor',
           crm: '',
-          planStatus: 'trial',
-          trialStartDate: new Date().toISOString(),
-          trialDays: 7,
+          planStatus: 'active',
+          planType: 'starter',
         } as User,
         isAuthenticated: true,
-        originalUser: null,
-        impersonatedClient: null,
       })
-      return true
-    }
 
-    return false
+      return true
+    } catch {
+      return false
+    }
   },
 
   register: async (data: RegisterData) => {
-    const existing = get().registeredUsers.find(u => u.email === data.email)
-    if (existing) return false
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/register`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+            nome: data.nome,
+            role: 'doctor',
+          }),
+        }
+      )
 
-    set(state => ({
-      registeredUsers: [...state.registeredUsers, { email: data.email, password: data.password }],
-    }))
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Erro ao cadastrar' }))
+        throw new Error(err.error || 'Erro ao cadastrar')
+      }
 
-    set({
-      user: {
-        id: data.email,
-        nome: data.nome,
-        email: data.email,
-        role: 'doctor',
-        crm: data.crm,
-        especialidade: data.especialidade,
-        planStatus: 'trial',
-        trialStartDate: new Date().toISOString(),
-        trialDays: 14,
-      } as User,
-      isAuthenticated: true,
-      originalUser: null,
-      impersonatedClient: null,
-    })
-    return true
+      // Auto-login after register
+      return await get().login(data.email, data.password)
+    } catch {
+      return false
+    }
   },
 
   logout: () => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (token) {
+      fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/logout`,
+        { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
+      ).catch(() => {})
+    }
+    localStorage.removeItem(TOKEN_KEY)
     set({
       user: null,
       isAuthenticated: false,
@@ -193,24 +197,10 @@ export const useAuthStore = create<AuthState>()(
       lastAccess: new Date().toISOString(),
       faturamento: i === 0 ? 45000 : undefined,
     }))
-    if (clients.length === 0) {
-      clients.push(
-        { id: 'demo-1', nome: 'Clínica Mendes', email: 'mendes@clinica.com.br', crm: '123456', planStatus: 'active', planType: 'clinic', lastAccess: new Date().toISOString(), faturamento: 128000 },
-        { id: 'demo-2', nome: 'Dr. Carlos Silva', email: 'carlos@silva.com', crm: '789012', planStatus: 'trial', planType: 'starter', lastAccess: new Date().toISOString(), faturamento: 15000 },
-        { id: 'demo-3', nome: 'Clínica Oliveira', email: 'oliveira@clinica.com', crm: '345678', planStatus: 'expired', planType: undefined, lastAccess: undefined, faturamento: undefined },
-      )
-    }
     return clients
   },
 
   getPasswordForEmail: (email: string) => {
-    const demoPasswords: Record<string, string> = {
-      'admin@medvante.com.br': 'admin123',
-      'produtor@medvante.com.br': 'produtor123',
-      'suporte@medvante.com.br': 'suporte123',
-    }
-    if (demoPasswords[email]) return demoPasswords[email]
-
     const registered = get().registeredUsers.find(u => u.email === email)
     return registered ? registered.password : null
   },

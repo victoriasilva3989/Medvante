@@ -14,6 +14,7 @@ interface ProntuarioState {
 
   addPatient: (p: Patient) => void
   updatePatient: (id: string, data: Partial<Patient>) => void
+  removePatient: (id: string) => void
   addRecord: (r: MedicalRecord) => void
   signRecord: (id: string) => void
   addProtocol: (p: TreatmentProtocol) => void
@@ -38,6 +39,13 @@ export const useProntuarioStore = create<ProntuarioState>()(
       addPatient: (p) => set(s => ({ patients: [...s.patients, p] })),
       updatePatient: (id, data) => set(s => ({
         patients: s.patients.map(p => p.id === id ? { ...p, ...data } : p)
+      })),
+      removePatient: (id) => set(s => ({
+        patients: s.patients.filter(p => p.id !== id),
+        records: s.records.filter(r => r.pacienteId !== id),
+        protocols: s.protocols.filter(p => p.pacienteId !== id),
+        sessions: s.sessions.filter(s => s.pacienteId !== id),
+        prescriptions: s.prescriptions.filter(p => p.pacienteId !== id),
       })),
       addRecord: (r) => set(s => ({ records: [...s.records, r] })),
       signRecord: (id) => set(s => ({

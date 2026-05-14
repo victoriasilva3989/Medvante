@@ -48,8 +48,8 @@ export function ImportacaoPage() {
       ['Colunas da planilha:'],
       ['Coluna', 'Nome', 'Obrigatório', 'Tipo', 'Exemplo', 'Observação'],
       ['A', 'data', 'SIM', 'Data', '15/03/2024', 'DD/MM/AAAA'],
-      ['B', 'paciente_nome', 'SIM', 'Texto', 'Maria da Silva', 'Nome completo'],
-      ['C', 'paciente_cpf', 'NÃO', 'Texto', '123.456.789-00', 'Com ou sem pontuação'],
+      ['B', 'paciente_nome', 'SIM', 'Texto', 'Exemplo', 'Nome completo'],
+      ['C', 'paciente_cpf', 'NÃO', 'Texto', '000.000.000-00', 'Com ou sem pontuação'],
       ['D', 'procedimento', 'SIM', 'Texto', 'Consulta', 'Nome do procedimento'],
       ['E', 'tipo', 'SIM', 'Opção', 'particular', 'particular / convenio / telemedicina'],
       ['F', 'convenio', 'NÃO', 'Texto', 'UNIMED', 'Obrigatório se tipo = convenio'],
@@ -62,9 +62,7 @@ export function ImportacaoPage() {
     XLSX.utils.book_append_sheet(wb, ws1, 'Instruções')
     const headers = ['data', 'paciente_nome', 'paciente_cpf', 'procedimento', 'tipo', 'convenio', 'valor', 'status', 'local', 'observacao']
     const exemplos = [
-      ['15/03/2024', 'Maria da Silva', '123.456.789-00', 'Consulta', 'particular', '', '350,00', 'pago', 'Consultório Centro', 'Retorno'],
-      ['16/03/2024', 'João Santos', '', 'Eletrocardiograma', 'convenio', 'UNIMED', '180,00', 'pendente', '', ''],
-      ['17/03/2024', 'Ana Costa', '987.654.321-00', 'Teleconsulta', 'telemedicina', '', '250,00', 'pago', '', ''],
+      ['DD/MM/AAAA', 'Nome do paciente', '000.000.000-00', 'Procedimento', 'particular', '', '0,00', 'pendente', '', ''],
     ]
     const ws2 = XLSX.utils.aoa_to_sheet([headers, ...exemplos])
     ws2['!cols'] = headers.map(() => ({ wch: 20 }))

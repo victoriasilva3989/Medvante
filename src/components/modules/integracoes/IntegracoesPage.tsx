@@ -12,10 +12,10 @@ import {
   Landmark, Trash2
 } from 'lucide-react'
 
-const mockCertificates = [
-  { id: 'c1', nome: 'Certificado A1 - Dr. Carlos', emissor: 'Soluti', validade: '15/08/2026', diasRestantes: 95, tipo: 'A1', ambiente: 'producao', status: 'active' },
-  { id: 'c2', nome: 'Certificado A3 - Clínica', emissor: 'Certisign', validade: '20/03/2027', diasRestantes: 312, tipo: 'A3', ambiente: 'homologacao', status: 'active' },
-]
+const mockCertificates: {
+  id: string; nome: string; emissor: string; validade: string;
+  diasRestantes: number; tipo: string; ambiente: string; status: string
+}[] = []
 
 export function IntegracoesPage() {
   const { accounts, addAccount, removeAccount, updateStatus, updateSaldo } = useBankStore()

@@ -12,6 +12,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const { login } = useAuthStore()
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -25,11 +26,18 @@ export function LoginPage() {
       return
     }
 
-    const success = await login(email, password)
-    if (success) {
-      navigate('/dashboard')
-    } else {
+    setLoading(true)
+    try {
+      const success = await login(email, password)
+      if (success) {
+        navigate('/dashboard')
+      } else {
+        setError(t('login_error_invalid'))
+      }
+    } catch {
       setError(t('login_error_invalid'))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -98,9 +106,9 @@ export function LoginPage() {
               <p className="text-xs text-danger bg-danger-pale px-3 py-2 rounded-lg">{error}</p>
             )}
 
-            <Button type="submit" className="w-full" size="lg">
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
               <Stethoscope size={18} />
-              {t('login_button')}
+              {loading ? t('login_loading') || 'Entrando...' : t('login_button')}
             </Button>
           </form>
 

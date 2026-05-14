@@ -4,7 +4,8 @@ import {
   LayoutDashboard, DollarSign, Calendar, GitBranch, AlertTriangle,
   FileText, Upload, Package, FileSpreadsheet, Megaphone, DoorOpen,
   Users, Brain, Puzzle, Settings, Shield, ChevronLeft, ChevronRight,
-  UsersRound, LogOut, UserCog, Stethoscope, Banknote, Receipt
+  UsersRound, LogOut, UserCog, Stethoscope, Banknote, Receipt,
+  ShoppingBag, ContactRound
 } from 'lucide-react'
 import { SecurityBadge } from '../ui/SecurityBadge'
 import { useAuthStore } from '../../store/authStore'
@@ -50,6 +51,7 @@ export function Sidebar() {
         { labelKey: 'nav_orcamentos', label: 'Orçamentos', icon: <FileSpreadsheet size={18} />, path: '/orcamentos', pro: true },
         { labelKey: 'nav_marketing', label: 'Marketing/NPS', icon: <Megaphone size={18} />, path: '/marketing', pro: true },
         { labelKey: 'nav_prontuario', label: 'Prontuário', icon: <Stethoscope size={18} />, path: '/prontuario', pro: true },
+        { labelKey: 'nav_precificacao', label: 'Precificação', icon: <ShoppingBag size={18} />, path: '/precificacao', pro: true },
       ],
     },
     {
@@ -59,6 +61,7 @@ export function Sidebar() {
         { labelKey: 'nav_equipe', label: 'Equipe', icon: <Users size={18} />, path: '/equipe', clinic: true },
         { labelKey: 'nav_caixa', label: 'Caixa', icon: <Banknote size={18} />, path: '/caixa', pro: true },
         { labelKey: 'nav_comissionamento', label: 'Comissionamento', icon: <Receipt size={18} />, path: '/comissionamento', pro: true },
+        { labelKey: 'nav_crm', label: 'CRM', icon: <ContactRound size={18} />, path: '/crm', pro: true },
         { labelKey: 'nav_ia', label: 'IA Charcot', icon: <Brain size={18} />, path: '/ia', clinic: true },
       ],
     },

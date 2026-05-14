@@ -6,10 +6,11 @@ import { Modal } from '../../ui/Modal'
 import { PaywallGate } from '../../trial/PaywallGate'
 import { useCaixaStore } from '../../../store/caixaStore'
 import type { CashMovement } from '../../../types'
-import { Banknote, Plus, TrendingUp, TrendingDown, Search, Lock, Unlock, History } from 'lucide-react'
+import { toast } from '../../../hooks/useToast'
+import { Banknote, Plus, TrendingUp, TrendingDown, Search, Lock, Unlock, History, Trash2 } from 'lucide-react'
 
 export function CaixaPage() {
-  const { registers, openRegister, closeRegister, addMovement, getCurrentRegister, addDREEntry } = useCaixaStore()
+  const { registers, openRegister, closeRegister, addMovement, removeMovement, getCurrentRegister, addDREEntry } = useCaixaStore()
   const [search, setSearch] = useState('')
   const [showAbrirModal, setShowAbrirModal] = useState(false)
   const [showMovimentoModal, setShowMovimentoModal] = useState(false)
@@ -79,6 +80,13 @@ export function CaixaPage() {
     closeRegister(currentRegister.id, parseFloat(saldoFinal) || (currentRegister.saldoInicial + currentRegister.totalEntradas - currentRegister.totalSaidas))
     setShowFecharModal(false)
     setSaldoFinal('')
+  }
+
+  const handleDeleteMovimento = (caixaId: string, movimentoId: string) => {
+    if (confirm('Excluir este movimento?')) {
+      removeMovement(caixaId, movimentoId)
+      toast('Movimento excluído', 'info')
+    }
   }
 
   return (
@@ -166,13 +174,13 @@ export function CaixaPage() {
         }>
           <table className="w-full border-collapse">
             <thead><tr className="bg-bg-card-alt">
-              {['Data', 'Hora', 'Descrição', 'Categoria', 'Forma', 'Paciente', 'Valor', 'Tipo'].map(h => (
+              {['Data', 'Hora', 'Descrição', 'Categoria', 'Forma', 'Paciente', 'Valor', 'Tipo', 'Ações'].map(h => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">{h}</th>
               ))}
             </tr></thead>
             <tbody className="divide-y divide-border">
               {filteredMov.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-text-muted">Nenhum movimento registrado</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-sm text-text-muted">Nenhum movimento registrado</td></tr>
               ) : (
                 filteredMov.sort((a, b) => new Date(b.data + ' ' + b.horario).getTime() - new Date(a.data + ' ' + a.horario).getTime()).map(m => (
                   <tr key={m.id} className="hover:bg-blue-pale transition-colors">
@@ -185,6 +193,11 @@ export function CaixaPage() {
                     <td className="px-4 py-3 text-sm font-medium text-text-primary">R$ {m.valor.toFixed(2)}</td>
                     <td className="px-4 py-3">
                       <Badge variant={m.tipo === 'entrada' ? 'green' : 'red'}>{m.tipo === 'entrada' ? 'Entrada' : 'Saída'}</Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => handleDeleteMovimento(m.caixaId, m.id)} className="p-1 hover:bg-bg-card-alt rounded cursor-pointer">
+                        <Trash2 size={14} className="text-danger" />
+                      </button>
                     </td>
                   </tr>
                 ))

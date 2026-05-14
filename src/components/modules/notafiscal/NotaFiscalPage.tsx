@@ -223,8 +223,8 @@ export function NotaFiscalPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-text-primary">Certificado ICP-Brasil A1</h3>
-                  <p className="text-sm text-text-secondary">Emissor: Soluti · Válido até 15/08/2026</p>
-                  <p className="text-xs text-text-muted">CNPJ: 12.345.678/0001-90 · Dr. Carlos Mendes</p>
+                  <p className="text-sm text-text-secondary">Emissor: — · Válido até —</p>
+                  <p className="text-xs text-text-muted">Nenhum certificado cadastrado</p>
                 </div>
               </div>
               <Badge variant="green"><CheckCircle size={12} /> Ativo</Badge>

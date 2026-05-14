@@ -7,12 +7,13 @@ import { Modal } from '../../ui/Modal'
 import { PaywallGate } from '../../trial/PaywallGate'
 import { useProntuarioStore } from '../../../store/prontuarioStore'
 import { useAuthStore } from '../../../store/authStore'
+import { toast } from '../../../hooks/useToast'
 import type { Patient, MedicalRecord, TreatmentProtocol, TreatmentSession } from '../../../types'
-import { Search, Plus, Pencil, User, FileText, Activity, Pill, Calendar, Clock, CheckCircle } from 'lucide-react'
+import { Search, Plus, Pencil, User, FileText, Activity, Pill, Calendar, Clock, CheckCircle, Trash2 } from 'lucide-react'
 
 export function ProntuarioPage() {
   const { user } = useAuthStore()
-  const { patients, records, protocols, sessions, prescriptions, addPatient, updatePatient, addRecord, signRecord, addProtocol, updateProtocol, addSession, updateSession, addPrescription, signPrescription } = useProntuarioStore()
+  const { patients, records, protocols, sessions, prescriptions, addPatient, updatePatient, removePatient, addRecord, signRecord, addProtocol, updateProtocol, addSession, updateSession, addPrescription, signPrescription } = useProntuarioStore()
   const [tab, setTab] = useState('pacientes')
   const [search, setSearch] = useState('')
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
@@ -68,6 +69,14 @@ export function ProntuarioPage() {
     setPatientForm({ nome: p.nome, cpf: p.cpf || '', telefone: p.telefone || '', email: p.email || '', dataNascimento: p.dataNascimento || '', convenio: p.convenio || '', observacoes: p.observacoes || '' })
     setEditPatientId(p.id)
     setShowPatientModal(true)
+  }
+
+  const handleDeletePatient = (id: string) => {
+    if (confirm('Excluir paciente e todos os seus registros?')) {
+      removePatient(id)
+      if (selectedPatientId === id) setSelectedPatientId(null)
+      toast('Paciente excluído', 'info')
+    }
   }
 
   const handleAddRecord = () => {
@@ -200,6 +209,9 @@ export function ProntuarioPage() {
                       </div>
                       <button onClick={(e) => { e.stopPropagation(); handleEditPatient(p) }} className="p-1 hover:bg-bg-card-alt rounded cursor-pointer">
                         <Pencil size={12} className="text-text-muted" />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDeletePatient(p.id) }} className="p-1 hover:bg-bg-card-alt rounded cursor-pointer">
+                        <Trash2 size={12} className="text-danger" />
                       </button>
                     </div>
                   ))

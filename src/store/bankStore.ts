@@ -14,21 +14,23 @@ export interface BankAccount {
 
 interface BankState {
   accounts: BankAccount[]
+  loading: boolean
+  error: string | null
   addAccount: (account: BankAccount) => void
   removeAccount: (id: string) => void
   updateSaldo: (id: string, saldo: number) => void
   updateStatus: (id: string, status: BankAccount['status']) => void
   getSaldoTotal: () => number
   getConnectedCount: () => number
+  fetchContas: () => Promise<void>
 }
 
 export const useBankStore = create<BankState>()(
   persist(
     (set, get) => ({
-      accounts: [
-        { id: 'b1', nome: 'Banco do Brasil', agencia: '1234-5', conta: '45.678-9', saldo: 0, tipo: 'Conta Corrente', status: 'connected', ultimaAtualizacao: '—' },
-        { id: 'b2', nome: 'NuBank', agencia: '0001', conta: '987654321', saldo: 0, tipo: 'Conta Corrente', status: 'connected', ultimaAtualizacao: '—' },
-      ],
+      accounts: [],
+      loading: false,
+      error: null,
 
       addAccount: (account) => set(s => ({ accounts: [...s.accounts, account] })),
       removeAccount: (id) => set(s => ({ accounts: s.accounts.filter(a => a.id !== id) })),
@@ -40,7 +42,28 @@ export const useBankStore = create<BankState>()(
       })),
       getSaldoTotal: () => get().accounts.filter(a => a.status === 'connected').reduce((a, b) => a + b.saldo, 0),
       getConnectedCount: () => get().accounts.filter(a => a.status === 'connected').length,
+
+      fetchContas: async () => {
+        set({ loading: true, error: null })
+        try {
+          const { get } = await import('../services/api')
+          const data = await get<{ id: string; banco_nome: string; agencia: string; numero_conta: string; saldo: number; tipo: string; ativo: boolean }[]>('/api/contas-bancarias')
+          const accounts: BankAccount[] = data.map((c: any) => ({
+            id: c.id,
+            nome: c.banco_nome || 'Banco',
+            agencia: c.agencia || '',
+            conta: c.numero_conta || '',
+            saldo: parseFloat(c.saldo) || 0,
+            tipo: 'Conta Corrente',
+            status: c.ativo ? 'connected' : 'disconnected',
+            ultimaAtualizacao: new Date().toLocaleString('pt-BR'),
+          }))
+          set({ accounts, loading: false })
+        } catch (err) {
+          set({ loading: false, error: err instanceof Error ? err.message : 'Erro ao buscar contas' })
+        }
+      },
     }),
-    { name: 'medvante-banks' }
+    { name: 'medvante-banks', partialize: (state) => ({ accounts: state.accounts }) }
   )
 )

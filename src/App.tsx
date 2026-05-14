@@ -4,6 +4,7 @@ import { Layout } from './components/layout/Layout'
 import { LoginPage } from './components/auth/LoginPage'
 import { RegisterPage } from './components/auth/RegisterPage'
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage'
+import { PrivateRoute } from './components/PrivateRoute'
 import { useAuthStore } from './store/authStore'
 import { PaywallGate } from './components/trial/PaywallGate'
 
@@ -25,14 +26,10 @@ const CaixaPage = lazy(() => import('./components/modules/caixa/CaixaPage').then
 const ComissionamentoPage = lazy(() => import('./components/modules/comissionamento/ComissionamentoPage').then(m => ({ default: m.ComissionamentoPage })))
 const IaPage = lazy(() => import('./components/modules/ia/IaPage').then(m => ({ default: m.IaPage })))
 const IntegracoesPage = lazy(() => import('./components/modules/integracoes/IntegracoesPage').then(m => ({ default: m.IntegracoesPage })))
+const PrecificacaoPage = lazy(() => import('./components/modules/precificacao/PrecificacaoPage').then(m => ({ default: m.PrecificacaoPage })))
+const CrmPage = lazy(() => import('./components/modules/crm/CrmPage').then(m => ({ default: m.CrmPage })))
 const SegurancaPage = lazy(() => import('./pages/SegurancaPage').then(m => ({ default: m.SegurancaPage })))
 const ConfiguracoesPage = lazy(() => import('./pages/ConfiguracoesPage').then(m => ({ default: m.ConfiguracoesPage })))
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  return <>{children}</>
-}
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
@@ -53,11 +50,11 @@ export default function App() {
         <Route path="/esqueci-senha" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
         <Route
           element={
-            <ProtectedRoute>
+            <PrivateRoute>
               <Suspense fallback={<div className="p-8 text-text-secondary text-sm">Carregando...</div>}>
                 <Layout />
               </Suspense>
-            </ProtectedRoute>
+            </PrivateRoute>
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
@@ -78,6 +75,8 @@ export default function App() {
           <Route path="/comissionamento" element={<TrialGuard feature="pro" description="Regras de comissionamento e cálculo automático."><ComissionamentoPage /></TrialGuard>} />
           <Route path="/ia" element={<IaPage />} />
           <Route path="/integracoes" element={<TrialGuard feature="clinic" description="Integrações com bancos, convênios e marketplaces."><IntegracoesPage /></TrialGuard>} />
+          <Route path="/precificacao" element={<TrialGuard feature="pro" description="Precificação automática de procedimentos com base em custos."><PrecificacaoPage /></TrialGuard>} />
+          <Route path="/crm" element={<TrialGuard feature="pro" description="CRM para captação e gestão de leads."><CrmPage /></TrialGuard>} />
           <Route path="/seguranca" element={<SegurancaPage />} />
           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

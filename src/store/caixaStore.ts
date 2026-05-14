@@ -9,6 +9,7 @@ interface CaixaState {
   openRegister: (r: CashRegister) => void
   closeRegister: (id: string, saldoFinal: number) => void
   addMovement: (m: CashMovement) => void
+  removeMovement: (caixaId: string, movimentoId: string) => void
   getRegisterByDate: (data: string) => CashRegister | undefined
   getCurrentRegister: () => CashRegister | undefined
 
@@ -38,6 +39,18 @@ export const useCaixaStore = create<CaixaState>()(
                 movimentos: [...r.movimentos, m],
                 totalEntradas: m.tipo === 'entrada' ? r.totalEntradas + m.valor : r.totalEntradas,
                 totalSaidas: m.tipo === 'saida' ? r.totalSaidas + m.valor : r.totalSaidas,
+              }
+            : r
+        )
+      })),
+      removeMovement: (caixaId, movimentoId) => set(s => ({
+        registers: s.registers.map(r =>
+          r.id === caixaId
+            ? {
+                ...r,
+                movimentos: r.movimentos.filter(m => m.id !== movimentoId),
+                totalEntradas: r.movimentos.filter(m => m.id !== movimentoId && m.tipo === 'entrada').reduce((a, b) => a + b.valor, 0),
+                totalSaidas: r.movimentos.filter(m => m.id !== movimentoId && m.tipo === 'saida').reduce((a, b) => a + b.valor, 0),
               }
             : r
         )

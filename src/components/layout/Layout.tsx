@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { TrialBanner } from '../trial/TrialBanner'
 import { CollaborativePanel } from '../auth/CollaborativePanel'
+import { ToastContainer } from '../ui/Toast'
 import { useAuthStore } from '../../store/authStore'
 
 export function Layout() {
@@ -19,6 +20,7 @@ export function Layout() {
         </main>
       </div>
       {isCollaborativeMode && <CollaborativePanel />}
+      <ToastContainer />
     </div>
   )
 }

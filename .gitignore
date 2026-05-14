@@ -1,4 +1,19 @@
-node_modules
-dist
+node_modules/
+.env
+dist/
 .DS_Store
 *.local
+
+# Backend
+backend/node_modules/
+backend/.env
+backend/certs/
+backend/logs/
+backend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

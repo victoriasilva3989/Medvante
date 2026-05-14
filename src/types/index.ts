@@ -329,4 +329,4 @@ export type ModuleName =
   | 'notafiscal' | 'importacao' | 'estoque' | 'orcamentos' | 'marketing'
   | 'recepcao' | 'equipe' | 'ia' | 'integracoes' | 'configuracoes' | 'seguranca'
   | 'prontuario' | 'prescricoes' | 'caixa' | 'dre' | 'curva-abc'
-  | 'planos-recorrencia' | 'comissionamento'
+  | 'planos-recorrencia' | 'comissionamento' | 'precificacao' | 'crm'

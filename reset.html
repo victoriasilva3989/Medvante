@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medvante - Reset</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0B1121; color: #E2E8F0;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #1E293B; border-radius: 16px;
+      padding: 48px; max-width: 520px; width: 90%;
+      text-align: center; border: 1px solid #334155;
+    }
+    h1 { color: #93C5FD; font-size: 24px; margin-bottom: 8px; }
+    h1 span { color: #2563EB; }
+    p { color: #94A3B8; font-size: 14px; margin-bottom: 24px; }
+    .keys {
+      text-align: left; background: #0F172A;
+      border-radius: 8px; padding: 16px; margin-bottom: 24px;
+      font-size: 12px; color: #64748B; max-height: 200px; overflow-y: auto;
+    }
+    .keys li { padding: 2px 0; }
+    .btn {
+      background: #2563EB; color: #fff; border: none;
+      padding: 14px 32px; border-radius: 10px; font-size: 15px;
+      font-weight: 600; cursor: pointer; transition: background .2s;
+    }
+    .btn:hover { background: #1D4ED8; }
+    .btn:active { background: #1E40AF; }
+    .success { color: #22C55E; font-weight: 600; margin-top: 16px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>med<span>vante</span></h1>
+    <p>Clique abaixo para limpar todos os dados locais do Medvante.</p>
+    <div class="keys">
+      <strong style="color:#94A3B8;">Chaves que serao removidas:</strong>
+      <ul>
+        <li>medvante-auth</li>
+        <li>medvante-caixa</li>
+        <li>medvante-prontuario</li>
+        <li>medvante-comissionamento</li>
+        <li>medvante-banks</li>
+        <li>medvante-faturamento</li>
+        <li>medvante-trial</li>
+        <li>medvante-atendimentos</li>
+        <li>medvante-contas-receber</li>
+        <li>medvante-contas-pagar</li>
+        <li>medvante-profile</li>
+        <li>medvante-notificacoes</li>
+        <li>medvante-dmed-status</li>
+        <li>medvante-pipeline</li>
+        <li>medvante-glosas</li>
+        <li>medvante-campanhas</li>
+        <li>medvante-nps</li>
+        <li>medvante-crm</li>
+        <li>medvante-estoque</li>
+        <li>medvante-orcamentos</li>
+        <li>medvante-precificacao</li>
+      </ul>
+    </div>
+    <button class="btn" onclick="resetar()">Limpar dados</button>
+    <p class="success" id="msg">Dados limpos com sucesso! Voce pode fechar esta pagina.</p>
+  </div>
+  <script>
+    function resetar() {
+      var keys = ["medvante-auth","medvante-caixa","medvante-prontuario","medvante-comissionamento","medvante-banks","medvante-faturamento","medvante-trial","medvante-atendimentos","medvante-contas-receber","medvante-contas-pagar","medvante-profile","medvante-notificacoes","medvante-dmed-status","medvante-pipeline","medvante-glosas","medvante-campanhas","medvante-nps","medvante-crm","medvante-estoque","medvante-orcamentos","medvante-precificacao"];
+      keys.forEach(function(k) { localStorage.removeItem(k); });
+      document.getElementById("msg").style.display = "block";
+    }
+  </script>
+</body>
+</html>
