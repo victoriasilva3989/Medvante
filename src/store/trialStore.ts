@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { PlanStatus, PlanType } from '../types'
 
 interface TrialState {
@@ -13,7 +14,9 @@ interface TrialState {
   isInGrace: () => boolean
 }
 
-export const useTrialStore = create<TrialState>((set, get) => ({
+export const useTrialStore = create<TrialState>()(
+  persist(
+    (set, get) => ({
   trialStartDate: new Date().toISOString(),
   trialDays: 7,
   planStatus: 'trial',
@@ -49,4 +52,7 @@ export const useTrialStore = create<TrialState>((set, get) => ({
     const { planStatus } = get()
     return planStatus === 'grace'
   },
-}))
+}),
+    { name: 'medvante-trial' }
+  )
+)

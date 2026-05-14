@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { Card } from '../../ui/Card'
 import { Badge } from '../../ui/Badge'
 import {
-  TrendingUp, TrendingDown, DollarSign, Calendar, Users, Wallet,
-  FileText, Receipt, AlertTriangle, Clock, Ban, Info
+  DollarSign, Calendar, Users, Wallet,
+  FileText, Receipt, Info
 } from 'lucide-react'
 import { useFaturamentoStore } from '../../../store/faturamentoStore'
 import { useBankStore } from '../../../store/bankStore'
@@ -20,11 +20,6 @@ function lerAtendimentos(): Appointment[] {
     if (data) return JSON.parse(data) as Appointment[]
   } catch {}
   return []
-}
-
-function formatarDataBR(data: string): string {
-  const [ano, mes, dia] = data.split('-')
-  return `${dia}/${mes}/${ano}`
 }
 
 function isHoje(dataISO: string): boolean {

@@ -1,28 +1,32 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { Layout } from './components/layout/Layout'
 import { LoginPage } from './components/auth/LoginPage'
 import { RegisterPage } from './components/auth/RegisterPage'
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage'
-import { DashboardPage } from './components/modules/dashboard/DashboardPage'
-import { FinanceiroPage } from './components/modules/financeiro/FinanceiroPage'
-import { AtendimentosPage } from './components/modules/atendimentos/AtendimentosPage'
-import { PipelinePage } from './components/modules/pipeline/PipelinePage'
-import { GlosasPage } from './components/modules/glosas/GlosasPage'
-import { NotaFiscalPage } from './components/modules/notafiscal/NotaFiscalPage'
-import { ImportacaoPage } from './components/modules/importacao/ImportacaoPage'
-import { ProducerDashboard } from './components/modules/producer/ProducerDashboard'
-import { EstoquePage } from './components/modules/estoque/EstoquePage'
-import { OrcamentosPage } from './components/modules/orcamentos/OrcamentosPage'
-import { MarketingPage } from './components/modules/marketing/MarketingPage'
-import { RecepcaoPage } from './components/modules/recepcao/RecepcaoPage'
-import { EquipePage } from './components/modules/equipe/EquipePage'
-import { IaPage } from './components/modules/ia/IaPage'
-import { IntegracoesPage } from './components/modules/integracoes/IntegracoesPage'
-import { SegurancaPage } from './pages/SegurancaPage'
-import { ConfiguracoesPage } from './pages/ConfiguracoesPage'
 import { useAuthStore } from './store/authStore'
-import { useTrialStore } from './store/trialStore'
 import { PaywallGate } from './components/trial/PaywallGate'
+
+const DashboardPage = lazy(() => import('./components/modules/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const FinanceiroPage = lazy(() => import('./components/modules/financeiro/FinanceiroPage').then(m => ({ default: m.FinanceiroPage })))
+const AtendimentosPage = lazy(() => import('./components/modules/atendimentos/AtendimentosPage').then(m => ({ default: m.AtendimentosPage })))
+const PipelinePage = lazy(() => import('./components/modules/pipeline/PipelinePage').then(m => ({ default: m.PipelinePage })))
+const GlosasPage = lazy(() => import('./components/modules/glosas/GlosasPage').then(m => ({ default: m.GlosasPage })))
+const NotaFiscalPage = lazy(() => import('./components/modules/notafiscal/NotaFiscalPage').then(m => ({ default: m.NotaFiscalPage })))
+const ImportacaoPage = lazy(() => import('./components/modules/importacao/ImportacaoPage').then(m => ({ default: m.ImportacaoPage })))
+const ProducerDashboard = lazy(() => import('./components/modules/producer/ProducerDashboard').then(m => ({ default: m.ProducerDashboard })))
+const EstoquePage = lazy(() => import('./components/modules/estoque/EstoquePage').then(m => ({ default: m.EstoquePage })))
+const OrcamentosPage = lazy(() => import('./components/modules/orcamentos/OrcamentosPage').then(m => ({ default: m.OrcamentosPage })))
+const MarketingPage = lazy(() => import('./components/modules/marketing/MarketingPage').then(m => ({ default: m.MarketingPage })))
+const RecepcaoPage = lazy(() => import('./components/modules/recepcao/RecepcaoPage').then(m => ({ default: m.RecepcaoPage })))
+const EquipePage = lazy(() => import('./components/modules/equipe/EquipePage').then(m => ({ default: m.EquipePage })))
+const ProntuarioPage = lazy(() => import('./components/modules/prontuario/ProntuarioPage').then(m => ({ default: m.ProntuarioPage })))
+const CaixaPage = lazy(() => import('./components/modules/caixa/CaixaPage').then(m => ({ default: m.CaixaPage })))
+const ComissionamentoPage = lazy(() => import('./components/modules/comissionamento/ComissionamentoPage').then(m => ({ default: m.ComissionamentoPage })))
+const IaPage = lazy(() => import('./components/modules/ia/IaPage').then(m => ({ default: m.IaPage })))
+const IntegracoesPage = lazy(() => import('./components/modules/integracoes/IntegracoesPage').then(m => ({ default: m.IntegracoesPage })))
+const SegurancaPage = lazy(() => import('./pages/SegurancaPage').then(m => ({ default: m.SegurancaPage })))
+const ConfiguracoesPage = lazy(() => import('./pages/ConfiguracoesPage').then(m => ({ default: m.ConfiguracoesPage })))
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
@@ -50,7 +54,9 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute>
-              <Layout />
+              <Suspense fallback={<div className="p-8 text-text-secondary text-sm">Carregando...</div>}>
+                <Layout />
+              </Suspense>
             </ProtectedRoute>
           }
         >
@@ -67,6 +73,9 @@ export default function App() {
           <Route path="/marketing" element={<TrialGuard feature="pro" description="Campanhas de marketing e pesquisa NPS."><MarketingPage /></TrialGuard>} />
           <Route path="/recepcao" element={<TrialGuard feature="clinic" description="Recepção digital para sua clínica."><RecepcaoPage /></TrialGuard>} />
           <Route path="/equipe" element={<TrialGuard feature="clinic" description="Gestão de equipe e permissões."><EquipePage /></TrialGuard>} />
+          <Route path="/prontuario" element={<TrialGuard feature="pro" description="Prontuário eletrônico com evoluções, protocolos e prescrições."><ProntuarioPage /></TrialGuard>} />
+          <Route path="/caixa" element={<TrialGuard feature="pro" description="Controle de caixa diário com abertura e fechamento."><CaixaPage /></TrialGuard>} />
+          <Route path="/comissionamento" element={<TrialGuard feature="pro" description="Regras de comissionamento e cálculo automático."><ComissionamentoPage /></TrialGuard>} />
           <Route path="/ia" element={<IaPage />} />
           <Route path="/integracoes" element={<TrialGuard feature="clinic" description="Integrações com bancos, convênios e marketplaces."><IntegracoesPage /></TrialGuard>} />
           <Route path="/seguranca" element={<SegurancaPage />} />

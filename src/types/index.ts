@@ -297,6 +297,7 @@ export interface NPSEvaluation {
 
 export interface Prescription {
   id: string
+  pacienteId: string
   paciente: string
   medicamentos: { nome: string; dosagem: string; quantidade: string; observacao?: string }[]
   data: string

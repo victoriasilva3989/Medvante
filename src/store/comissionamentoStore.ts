@@ -39,8 +39,10 @@ export const useComissionamentoStore = create<ComissionamentoState>()(
         )
       })),
 
-      calculateCommissions: (periodo, valorBase, profissionalId, profissionalNome) => {
-        const rules = get().rules.filter(r => r.profissionalId === profissionalId && r.ativo)
+      calculateCommissions: (periodo, valorBase, _profissionalId, profissionalNome) => {
+        const rules = get().rules.filter(r =>
+          r.profissionalNome.toLowerCase() === profissionalNome.toLowerCase() && r.ativo
+        )
         if (rules.length === 0) return null
 
         const rule = rules[0]
@@ -48,7 +50,7 @@ export const useComissionamentoStore = create<ComissionamentoState>()(
 
         const c: Commission = {
           id: 'comm-' + Date.now(),
-          profissionalId,
+          profissionalId: rule.profissionalId,
           profissionalNome,
           periodo,
           valorBase,

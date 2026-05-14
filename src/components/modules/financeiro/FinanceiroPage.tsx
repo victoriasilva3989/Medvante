@@ -12,8 +12,9 @@ import { useI18n } from '../../../i18n/useI18n'
 import {
   DollarSign, TrendingUp, TrendingDown, AlertTriangle,
   CheckCircle, XCircle, Plus, Search, RefreshCw,
-  Banknote, Calendar, Clock, FileText, PiggyBank
+  Banknote, Calendar, Clock, FileText, PiggyBank, Download
 } from 'lucide-react'
+import { useFaturamentoStore } from '../../../store/faturamentoStore'
 
 const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gold'> = {
   recebido: 'green', pago: 'green', conciliado: 'green', ativo: 'green',
@@ -28,10 +29,12 @@ export function FinanceiroPage() {
   const [contasReceber, setContasReceber] = usePersistedState<ContaReceber[]>('medvante-contas-receber', [])
   const [contasPagar, setContasPagar] = usePersistedState<ContaPagar[]>('medvante-contas-pagar', [])
   const [extrato] = useState(mockExtratoBancario)
+  const faturamentoNotas = useFaturamentoStore(s => s.notasServico)
 
   const [showReceberModal, setShowReceberModal] = useState(false)
   const [showPagarModal, setShowPagarModal] = useState(false)
-  const [editId, setEditId] = useState<string | null>(null)
+  const [editRecId, setEditRecId] = useState<string | null>(null)
+  const [editPagId, setEditPagId] = useState<string | null>(null)
 
   // Form state for Contas a Receber
   const [recForm, setRecForm] = useState({ paciente: '', valor: '', procedimento: '', tipo: 'particular' as 'particular' | 'convenio', convenio: '', emissao: '', vencimento: '' })
@@ -41,6 +44,8 @@ export function FinanceiroPage() {
 
   const [recSearch, setRecSearch] = useState('')
   const [pagSearch, setPagSearch] = useState('')
+  const [dmedYear, setDmedYear] = useState(new Date().getFullYear())
+  const [dmedStatus, setDmedStatus] = usePersistedState<Record<number, string>>('medvante-dmed-status', {})
 
   // Visão Geral calculations from local state
   const receitas = contasReceber.filter(c => c.status === 'recebido').reduce((a, b) => a + b.valor, 0)
@@ -65,19 +70,19 @@ export function FinanceiroPage() {
       status: 'pendente',
       diasAtraso: 0,
     }
-    if (editId) {
-      setContasReceber(prev => prev.map(c => c.id === editId ? { ...c, ...nova } : c))
+    if (editRecId) {
+      setContasReceber(prev => prev.map(c => c.id === editRecId ? { ...c, ...nova } : c))
     } else {
       setContasReceber(prev => [...prev, nova])
     }
     setShowReceberModal(false)
-    setEditId(null)
+    setEditRecId(null)
     setRecForm({ paciente: '', valor: '', procedimento: '', tipo: 'particular', convenio: '', emissao: '', vencimento: '' })
   }
 
   const handleEditReceber = (c: ContaReceber) => {
     setRecForm({ paciente: c.paciente, valor: String(c.valor), procedimento: c.procedimento, tipo: c.tipo, convenio: c.convenio || '', emissao: c.emissao, vencimento: c.vencimento })
-    setEditId(c.id)
+    setEditRecId(c.id)
     setShowReceberModal(true)
   }
 
@@ -101,19 +106,19 @@ export function FinanceiroPage() {
       status: 'pendente',
       diasAtraso: 0,
     }
-    if (editId) {
-      setContasPagar(prev => prev.map(c => c.id === editId ? { ...c, ...nova } : c))
+    if (editPagId) {
+      setContasPagar(prev => prev.map(c => c.id === editPagId ? { ...c, ...nova } : c))
     } else {
       setContasPagar(prev => [...prev, nova])
     }
     setShowPagarModal(false)
-    setEditId(null)
+    setEditPagId(null)
     setPagForm({ descricao: '', valor: '', categoria: '', vencimento: '', fornecedor: '' })
   }
 
   const handleEditPagar = (c: ContaPagar) => {
     setPagForm({ descricao: c.descricao, valor: String(c.valor), categoria: c.categoria, vencimento: c.vencimento, fornecedor: c.fornecedor })
-    setEditId(c.id)
+    setEditPagId(c.id)
     setShowPagarModal(true)
   }
 
@@ -123,6 +128,24 @@ export function FinanceiroPage() {
 
   const handleTogglePagarStatus = (id: string) => {
     setContasPagar(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'pago' ? 'pendente' : 'pago', diasAtraso: c.status === 'pago' ? c.diasAtraso : 0 } : c))
+  }
+
+  // DMED Export
+  const handleExportDMED = () => {
+    const yearNotas = faturamentoNotas.filter(n => new Date(n.data).getFullYear() === dmedYear && n.status === 'autorizada')
+    if (yearNotas.length === 0) return
+
+    const header = 'CPF/CNPJ Tomador;Nome Tomador;Data;Serviço;Valor;Número NF'
+    const rows = yearNotas.map(n => `${n.cpfCnpj};${n.tomador};${n.data};${n.servico};${n.valor.toFixed(2)};${n.numero}`)
+    const csv = [header, ...rows].join('\n')
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `DMED_${dmedYear}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    setDmedStatus(prev => ({ ...prev, [dmedYear]: 'exportado' }))
   }
 
   // Conciliação
@@ -300,7 +323,7 @@ export function FinanceiroPage() {
               <input value={recSearch} onChange={e => setRecSearch(e.target.value)}
                 placeholder={t('search')} className="w-full pl-9 pr-4 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
             </div>
-            <Button onClick={() => { setEditId(null); setRecForm({ paciente: '', valor: '', procedimento: '', tipo: 'particular', convenio: '', emissao: '', vencimento: '' }); setShowReceberModal(true) }}>
+            <Button onClick={() => { setEditRecId(null); setRecForm({ paciente: '', valor: '', procedimento: '', tipo: 'particular', convenio: '', emissao: '', vencimento: '' }); setShowReceberModal(true) }}>
               <Plus size={16} /> {t('fin_nova_conta_receber')}
             </Button>
           </div>
@@ -359,7 +382,7 @@ export function FinanceiroPage() {
               <input value={pagSearch} onChange={e => setPagSearch(e.target.value)}
                 placeholder={t('search')} className="w-full pl-9 pr-4 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
             </div>
-            <Button onClick={() => { setEditId(null); setPagForm({ descricao: '', valor: '', categoria: '', vencimento: '', fornecedor: '' }); setShowPagarModal(true) }}>
+            <Button onClick={() => { setEditPagId(null); setPagForm({ descricao: '', valor: '', categoria: '', vencimento: '', fornecedor: '' }); setShowPagarModal(true) }}>
               <Plus size={16} /> {t('fin_nova_conta_pagar')}
             </Button>
           </div>
@@ -512,11 +535,35 @@ export function FinanceiroPage() {
             </div>
           </Card>
 
+          <Card header={<span className="font-heading text-base font-medium">DMED — Declaração de Serviços Médicos</span>}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <select value={dmedYear} onChange={e => setDmedYear(Number(e.target.value))}
+                  className="px-3 py-1.5 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand">
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(a => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+                <span className="text-sm text-text-secondary">
+                  {faturamentoNotas.filter(n => new Date(n.data).getFullYear() === dmedYear && n.status === 'autorizada').length} nota(s) autorizada(s)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {dmedStatus[dmedYear] === 'exportado' && (
+                  <Badge variant="green">Exportado</Badge>
+                )}
+                <Button size="sm" onClick={handleExportDMED}>
+                  <Download size={14} /> Exportar DMED {dmedYear}
+                </Button>
+              </div>
+            </div>
+          </Card>
+
           <Card header={<span className="font-heading text-base font-medium">Obrigações Acessórias</span>}>
             <div className="space-y-3">
               {[
                 { nome: 'Declaração de Imposto de Renda PF', prazo: '31/05/2026', status: 'pendente' },
-                { nome: 'DMED (Declaração de Serviços Médicos)', prazo: '28/02/2027', status: 'pendente' },
+                { nome: 'DMED (Declaração de Serviços Médicos)', prazo: '28/02/2027', status: dmedStatus[dmedYear] || 'pendente' },
                 { nome: 'ECF (Escrituração Contábil Fiscal)', prazo: '31/07/2026', status: 'pendente' },
                 { nome: 'EFD-Reinf', prazo: '15/05/2026', status: 'pendente' },
                 { nome: 'Declaração de ISS', prazo: '15/05/2026', status: 'pendente' },
@@ -536,7 +583,7 @@ export function FinanceiroPage() {
 
       {/* ============ MODAL CONTAS A RECEBER ============ */}
       <Modal open={showReceberModal} onClose={() => setShowReceberModal(false)}
-        title={editId ? t('edit') + ' ' + t('fin_contas_receber') : t('fin_nova_conta_receber')}>
+        title={editRecId ? t('edit') + ' ' + t('fin_contas_receber') : t('fin_nova_conta_receber')}>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">{t('fin_paciente')}</label>
@@ -600,7 +647,7 @@ export function FinanceiroPage() {
 
       {/* ============ MODAL CONTAS A PAGAR ============ */}
       <Modal open={showPagarModal} onClose={() => setShowPagarModal(false)}
-        title={editId ? t('edit') + ' ' + t('fin_contas_pagar') : t('fin_nova_conta_pagar')}>
+        title={editPagId ? t('edit') + ' ' + t('fin_contas_pagar') : t('fin_nova_conta_pagar')}>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">{t('fin_descricao')}</label>

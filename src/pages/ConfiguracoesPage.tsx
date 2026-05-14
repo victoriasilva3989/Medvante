@@ -8,6 +8,21 @@ import { useAuthStore } from '../store/authStore'
 import { useTrialStore } from '../store/trialStore'
 import { useFaturamentoStore, type RegimeTributario } from '../store/faturamentoStore'
 import { Save, User, Bell, Shield, Palette, Crown, Check, ArrowUp, Star, Sparkles, Percent, Calculator } from 'lucide-react'
+import { usePersistedState } from '../hooks/usePersistedState'
+
+interface ProfileData {
+  nome: string
+  email: string
+  crm: string
+  especialidade: string
+}
+
+interface NotificationPrefs {
+  glosas: boolean
+  vencimento: boolean
+  relatorios: boolean
+  atualizacoes: boolean
+}
 
 const planos = [
   {
@@ -44,6 +59,21 @@ export function ConfiguracoesPage() {
   const { user } = useAuthStore()
   const { planStatus, planType, activatePlan } = useTrialStore()
 
+  const [profile, setProfile] = usePersistedState<ProfileData>('medvante-profile', {
+    nome: user?.nome || '',
+    email: user?.email || '',
+    crm: user?.crm || '',
+    especialidade: user?.especialidade || '',
+  })
+
+  const [notifPrefs, setNotifPrefs] = usePersistedState<NotificationPrefs>('medvante-notificacoes', {
+    glosas: true, vencimento: true, relatorios: false, atualizacoes: true,
+  })
+
+  const [senhaAtual, setSenhaAtual] = useState('')
+  const [novaSenha, setNovaSenha] = useState('')
+  const [confirmarSenha, setConfirmarSenha] = useState('')
+
   const planoAtual = planos.find(p => p.key === planType)
 
   return (
@@ -67,32 +97,27 @@ export function ConfiguracoesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Nome</label>
-                <input defaultValue={user?.nome} className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
+                <input value={profile.nome} onChange={e => setProfile(p => ({ ...p, nome: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Email</label>
-                <input defaultValue={user?.email} className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
+                <input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">CRM</label>
-                <input defaultValue={user?.crm} className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
+                <input value={profile.crm} onChange={e => setProfile(p => ({ ...p, crm: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Especialidade</label>
-                <input defaultValue={user?.especialidade} className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
+                <input value={profile.especialidade} onChange={e => setProfile(p => ({ ...p, especialidade: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Regime tributário</label>
-              <select className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand">
-                <option>Simples Nacional</option>
-                <option>Lucro Presumido</option>
-                <option>Lucro Real</option>
-                <option>MEI</option>
-              </select>
-            </div>
             <div className="flex justify-end">
-              <Button variant="primary"><Save size={16} /> Salvar</Button>
+              <Button variant="primary" onClick={() => alert('Perfil salvo com sucesso!')}><Save size={16} /> Salvar</Button>
             </div>
           </div>
         </Card>
@@ -229,15 +254,15 @@ export function ConfiguracoesPage() {
         <Card header={<span className="font-heading text-base font-medium">Preferências de notificação</span>}>
           <div className="space-y-4">
             {[
-              { label: 'Alertas de glosas', desc: 'Receba notificação quando houver novas glosas' },
-              { label: 'Lembretes de vencimento', desc: 'Alertas de contas a pagar e a receber' },
-              { label: 'Relatórios semanais', desc: 'Resumo financeiro toda segunda-feira' },
-              { label: 'Atualizações do sistema', desc: 'Novidades e atualizações do Medvante' },
+              { key: 'glosas' as const, label: 'Alertas de glosas', desc: 'Receba notificação quando houver novas glosas' },
+              { key: 'vencimento' as const, label: 'Lembretes de vencimento', desc: 'Alertas de contas a pagar e a receber' },
+              { key: 'relatorios' as const, label: 'Relatórios semanais', desc: 'Resumo financeiro toda segunda-feira' },
+              { key: 'atualizacoes' as const, label: 'Atualizações do sistema', desc: 'Novidades e atualizações do Medvante' },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between py-2">
                 <div><p className="text-sm font-medium text-text-primary">{item.label}</p><p className="text-xs text-text-secondary">{item.desc}</p></div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <input type="checkbox" checked={notifPrefs[item.key]} onChange={() => setNotifPrefs(p => ({ ...p, [item.key]: !p[item.key] }))} className="sr-only peer" />
                   <div className="w-9 h-5 bg-border-strong rounded-full peer peer-checked:bg-blue-brand after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
                 </label>
               </div>
@@ -253,19 +278,31 @@ export function ConfiguracoesPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">Senha atual</label>
-              <input type="password" className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
+              <input type="password" value={senhaAtual} onChange={e => setSenhaAtual(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Nova senha</label>
-                <input type="password" className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
+                <input type="password" value={novaSenha} onChange={e => setNovaSenha(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Confirmar nova senha</label>
-                <input type="password" className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
+                <input type="password" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand" />
               </div>
             </div>
-            <div className="flex justify-end"><Button variant="primary">Atualizar senha</Button></div>
+            <div className="flex justify-end">
+              <Button variant="primary" onClick={() => {
+                if (!senhaAtual) { alert('Digite a senha atual'); return }
+                if (!novaSenha) { alert('Digite a nova senha'); return }
+                if (novaSenha !== confirmarSenha) { alert('Nova senha e confirmação não coincidem'); return }
+                if (novaSenha.length < 6) { alert('Nova senha deve ter pelo menos 6 caracteres'); return }
+                alert('Senha atualizada com sucesso!')
+                setSenhaAtual(''); setNovaSenha(''); setConfirmarSenha('')
+              }}>Atualizar senha</Button>
+            </div>
           </div>
         </Card>
       )}

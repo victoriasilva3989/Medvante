@@ -5,11 +5,11 @@ import { Badge } from '../../ui/Badge'
 import { Button } from '../../ui/Button'
 import { Tabs } from '../../ui/Tabs'
 import { Modal } from '../../ui/Modal'
-import { useFaturamentoStore, type NotaFiscalServico, type NotaFiscalProduto, type NotaStatus, type Ambiente } from '../../../store/faturamentoStore'
+import { useFaturamentoStore, type NotaFiscalServico, type NotaFiscalProduto } from '../../../store/faturamentoStore'
 import {
   Plus, FileText, Package, FlaskConical, Upload,
   Shield, CheckCircle, Download, Send,
-  ToggleLeft, ToggleRight, Eye, XCircle, Trash2
+  ToggleLeft, ToggleRight, XCircle, Trash2
 } from 'lucide-react'
 
 function gerarNumero(tipo: 'servico' | 'produto', ano: number, count: number): string {

@@ -5,8 +5,9 @@ import { Badge } from '../../ui/Badge'
 import { Button } from '../../ui/Button'
 import { Tabs } from '../../ui/Tabs'
 import { Modal } from '../../ui/Modal'
-import { usePersistedState } from '../../../hooks/usePersistedState'
+import { usePersistedState, notifyStorageSync } from '../../../hooks/usePersistedState'
 import type { Appointment } from '../../../types'
+import type { ContaReceber } from '../../../data/contas'
 import {
   Plus, Calendar, Clock, List, CheckCircle, XCircle, FileText,
   ChevronLeft, ChevronRight, Download, Check, Globe, Smartphone
@@ -109,6 +110,27 @@ export function AtendimentosPage() {
       setAppointments(prev => prev.map(a => a.id === editId ? { ...a, ...nova } : a))
     } else {
       setAppointments(prev => [...prev, nova])
+
+      // Integração: novo atendimento gera conta a receber no Financeiro
+      if (nova.valor > 0) {
+        try {
+          const existing = JSON.parse(localStorage.getItem('medvante-contas-receber') || '[]') as ContaReceber[]
+          const newReceber: ContaReceber = {
+            id: 'cr-auto-' + Date.now(),
+            paciente: nova.paciente_nome,
+            valor: nova.valor,
+            procedimento: nova.procedimento,
+            tipo: nova.tipo === 'telemedicina' ? 'particular' : nova.tipo,
+            convenio: nova.convenio,
+            emissao: nova.data,
+            vencimento: nova.data,
+            status: nova.status === 'pago' ? 'recebido' : 'pendente',
+            diasAtraso: 0,
+          }
+          localStorage.setItem('medvante-contas-receber', JSON.stringify([...existing, newReceber]))
+          notifyStorageSync()
+        } catch {}
+      }
     }
     setShowModal(false); setEditId(null)
     setForm({ data: '', horario: '08:00', paciente_nome: '', procedimento: '', tipo: 'particular', convenio: '', valor: '', status: 'pendente', local: '', observacao: '' })

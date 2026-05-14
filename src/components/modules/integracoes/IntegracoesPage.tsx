@@ -4,39 +4,32 @@ import { Badge } from '../../ui/Badge'
 import { Button } from '../../ui/Button'
 import { Tabs } from '../../ui/Tabs'
 import { Modal } from '../../ui/Modal'
+import { useBankStore } from '../../../store/bankStore'
 import {
-  Building2, Plus, Link, Unlink, RefreshCw, Upload,
+  Building2, Plus, Link, RefreshCw, Upload,
   FileDown, Shield, ShieldCheck, FlaskConical,
   ArrowUpDown, Eye, EyeOff, CheckCircle, Clock,
-  Landmark
+  Landmark, Trash2
 } from 'lucide-react'
 
-// ── Mock Banks (Open Finance) ──
-const mockBanks = [
-  { id: 'b1', nome: 'Banco do Brasil', agencia: '1234-5', conta: '45.678-9', saldo: 32450.00, tipo: 'Conta Corrente', status: 'connected', ultimaAtualizacao: '12/05/2026 14:30' },
-  { id: 'b2', nome: 'NuBank', agencia: '0001', conta: '987654321', saldo: 12890.50, tipo: 'Conta Corrente', status: 'connected', ultimaAtualizacao: '12/05/2026 14:28' },
-  { id: 'b3', nome: 'Itaú', agencia: '5678', conta: '12345-6', saldo: 5670.80, tipo: 'Conta Poupança', status: 'disconnected', ultimaAtualizacao: '10/05/2026 09:00' },
-  { id: 'b4', nome: 'Caixa Econômica', agencia: '0012', conta: '678.901-2', saldo: 0, tipo: 'Conta Corrente', status: 'pending', ultimaAtualizacao: '-' },
-]
-
-// ── Mock NF-e Certificates ──
 const mockCertificates = [
   { id: 'c1', nome: 'Certificado A1 - Dr. Carlos', emissor: 'Soluti', validade: '15/08/2026', diasRestantes: 95, tipo: 'A1', ambiente: 'producao', status: 'active' },
   { id: 'c2', nome: 'Certificado A3 - Clínica', emissor: 'Certisign', validade: '20/03/2027', diasRestantes: 312, tipo: 'A3', ambiente: 'homologacao', status: 'active' },
 ]
 
 export function IntegracoesPage() {
+  const { accounts, addAccount, removeAccount, updateStatus, updateSaldo } = useBankStore()
   const [tab, setTab] = useState('bancos')
   const [saldoVisivel, setSaldoVisivel] = useState(true)
   const [showConectarBanco, setShowConectarBanco] = useState(false)
   const [showUploadCert, setShowUploadCert] = useState(false)
   const [certUploaded, setCertUploaded] = useState<string | null>(null)
 
-  const totalBancos = mockBanks.reduce((a, b) => a + b.saldo, 0)
+  const totalBancos = accounts.filter(a => a.status === 'connected').reduce((a, b) => a + b.saldo, 0)
+  const connectedCount = accounts.filter(a => a.status === 'connected').length
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
       <Tabs
         tabs={[
           { key: 'bancos', label: 'Bancos (Open Finance)', icon: <Landmark size={16} /> },
@@ -48,7 +41,6 @@ export function IntegracoesPage() {
         onChange={setTab}
       />
 
-      {/* ────────── TAB 1: BANCOS / OPEN FINANCE ────────── */}
       {tab === 'bancos' && (
         <>
           <div className="grid grid-cols-4 gap-4">
@@ -64,18 +56,15 @@ export function IntegracoesPage() {
             </Card>
             <Card>
               <p className="text-sm text-text-secondary">Contas conectadas</p>
-              <p className="text-2xl font-semibold text-success mt-1">{mockBanks.filter(b => b.status === 'connected').length}</p>
+              <p className="text-2xl font-semibold text-success mt-1">{connectedCount}</p>
             </Card>
             <Card>
               <p className="text-sm text-text-secondary">Pendentes</p>
-              <p className="text-2xl font-semibold text-warning mt-1">{mockBanks.filter(b => b.status === 'pending').length}</p>
+              <p className="text-2xl font-semibold text-warning mt-1">{accounts.filter(a => a.status === 'pending').length}</p>
             </Card>
             <Card>
-              <p className="text-sm text-text-secondary">Última atualização</p>
-              <p className="text-sm font-medium text-text-primary mt-1">12/05/2026 14:30</p>
-              <button className="text-xs text-blue-brand mt-1 flex items-center gap-1 cursor-pointer">
-                <RefreshCw size={12} /> Atualizar
-              </button>
+              <p className="text-sm text-text-secondary">Total de contas</p>
+              <p className="text-xl font-semibold text-text-primary mt-1">{accounts.length}</p>
             </Card>
           </div>
 
@@ -85,12 +74,12 @@ export function IntegracoesPage() {
               <div>
                 <h3 className="font-heading text-lg font-medium">Open Finance</h3>
                 <p className="text-text-on-dark2 text-sm mt-1 max-w-xl">
-                  Conecte suas contas bancárias via Open Finance e acompanhe o saldo em tempo real diretamente no Medvante. 
+                  Conecte suas contas bancárias via Open Finance e acompanhe o saldo em tempo real diretamente no Medvante.
                   Sua senha bancária nunca é compartilhada — tudo via token seguro.
                 </p>
                 <div className="flex gap-4 mt-3 text-xs text-text-on-dark2/80">
                   <span className="flex items-center gap-1"><ShieldCheck size={12} /> Token seguro</span>
-                  <span className="flex items-center gap-1"><RefreshCw size={12} /> Saldo atualizado a cada 5min</span>
+                  <span className="flex items-center gap-1"><RefreshCw size={12} /> Saldo atualizado</span>
                   <span className="flex items-center gap-1"><FileDown size={12} /> Extrato automático</span>
                 </div>
               </div>
@@ -100,9 +89,9 @@ export function IntegracoesPage() {
             </div>
           </Card>
 
-          {/* Bank Cards */}
+          {/* Bank Accounts */}
           <div className="grid grid-cols-2 gap-4">
-            {mockBanks.map((bank) => (
+            {accounts.map((bank) => (
               <Card key={bank.id}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -135,9 +124,12 @@ export function IntegracoesPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="ghost" size="sm"><RefreshCw size={12} /> Sincronizar</Button>
-                      <Button variant="ghost" size="sm"><FileDown size={12} /> Extrato</Button>
-                      <Button variant="ghost" size="sm" className="!text-danger"><Unlink size={12} /> Desconectar</Button>
+                      <Button variant="ghost" size="sm" onClick={() => updateSaldo(bank.id, bank.saldo + (Math.random() * 1000 - 500))}>
+                        <RefreshCw size={12} /> Atualizar saldo
+                      </Button>
+                      <Button variant="ghost" size="sm" className="!text-danger" onClick={() => { if (confirm('Desconectar esta conta?')) removeAccount(bank.id) }}>
+                        <Trash2 size={12} /> Remover
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -146,28 +138,44 @@ export function IntegracoesPage() {
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center gap-2 text-warning">
                       <Clock size={14} />
-                      <span className="text-xs">Aguardando autorização Open Finance</span>
+                      <span className="text-xs">Aguardando autorização</span>
                     </div>
-                    <Button variant="secondary" size="sm" className="mt-2">Continuar conexão</Button>
+                    <Button variant="secondary" size="sm" className="mt-2" onClick={() => updateStatus(bank.id, 'connected')}>
+                      Ativar conexão
+                    </Button>
                   </div>
                 )}
 
                 {bank.status === 'disconnected' && (
                   <div className="mt-4 pt-4 border-t border-border">
-                    <Button variant="primary" size="sm"><Link size={12} /> Reconectar via Open Finance</Button>
+                    <Button variant="primary" size="sm" onClick={() => updateStatus(bank.id, 'connected')}>
+                      <Link size={12} /> Reconectar
+                    </Button>
                   </div>
                 )}
               </Card>
             ))}
           </div>
 
-          {/* Conectar Banco Modal */}
-          <Modal open={showConectarBanco} onClose={() => setShowConectarBanco(false)} title="Conectar banco via Open Finance">
+          <Modal open={showConectarBanco} onClose={() => setShowConectarBanco(false)} title="Conectar banco">
             <div className="space-y-4">
-              <p className="text-sm text-text-secondary">Selecione seu banco para iniciar a conexão segura via Open Finance:</p>
+              <p className="text-sm text-text-secondary">Selecione seu banco para adicionar ao Medvante:</p>
               <div className="grid grid-cols-2 gap-3">
                 {['Banco do Brasil', 'Itaú', 'Bradesco', 'Santander', 'NuBank', 'Caixa', 'Inter', 'Sicredi'].map((banco) => (
-                  <button key={banco} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-blue-brand hover:bg-blue-pale/30 transition-all cursor-pointer">
+                  <button key={banco} onClick={() => {
+                    addAccount({
+                      id: 'bank-' + Date.now(),
+                      nome: banco,
+                      agencia: String(1000 + Math.floor(Math.random() * 9000)),
+                      conta: String(Math.floor(Math.random() * 99999)),
+                      saldo: Math.random() * 50000,
+                      tipo: Math.random() > 0.5 ? 'Conta Corrente' : 'Conta Poupança',
+                      status: 'connected',
+                      ultimaAtualizacao: new Date().toLocaleString('pt-BR'),
+                    })
+                    setShowConectarBanco(false)
+                  }}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-blue-brand hover:bg-blue-pale/30 transition-all cursor-pointer w-full">
                     <Landmark size={18} className="text-blue-mid" />
                     <span className="text-sm font-medium text-text-primary">{banco}</span>
                   </button>
@@ -175,26 +183,24 @@ export function IntegracoesPage() {
               </div>
               <div className="bg-blue-pale rounded-lg p-3 text-xs text-blue-mid flex items-start gap-2">
                 <ShieldCheck size={14} className="mt-0.5 flex-shrink-0" />
-                <span>Conexão via Open Finance — suas credenciais bancárias nunca são armazenadas no Medvante. Usamos token de acesso seguro e criptografado.</span>
+                <span>Conta adicionada localmente. Em produção, a conexão seria via Open Finance com token seguro.</span>
               </div>
-              <Button className="w-full">Autorizar conexão</Button>
             </div>
           </Modal>
         </>
       )}
 
-      {/* ────────── TAB 2: CONVÊNIOS ────────── */}
       {tab === 'convenios' && (
         <div className="space-y-4">
           <p className="text-sm text-text-secondary">Integrações com convênios para repasse de guias, faturamento e status de glosas.</p>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { name: 'UNIMED', type: 'Convênio', status: 'connected', desc: 'Repasse de guias e faturamento automático' },
-              { name: 'SulAmérica', type: 'Convênio', status: 'connected', desc: 'Repasse de guias e faturamento' },
-              { name: 'Amil', type: 'Convênio', status: 'disconnected', desc: 'Autenticação necessária' },
-              { name: 'Bradesco Saúde', type: 'Convênio', status: 'connected', desc: 'Repasse de guias e faturamento' },
-              { name: 'NotreDame', type: 'Convênio', status: 'disconnected', desc: 'Integração em andamento' },
-              { name: 'Hapvida', type: 'Convênio', status: 'coming-soon', desc: 'Em breve' },
+              { name: 'UNIMED', status: 'connected', desc: 'Repasse de guias e faturamento automático' },
+              { name: 'SulAmérica', status: 'connected', desc: 'Repasse de guias e faturamento' },
+              { name: 'Amil', status: 'disconnected', desc: 'Autenticação necessária' },
+              { name: 'Bradesco Saúde', status: 'connected', desc: 'Repasse de guias e faturamento' },
+              { name: 'NotreDame', status: 'disconnected', desc: 'Integração em andamento' },
+              { name: 'Hapvida', status: 'coming-soon', desc: 'Em breve' },
             ].map((int) => (
               <Card key={int.name}>
                 <div className="flex items-start justify-between">
@@ -211,18 +217,12 @@ export function IntegracoesPage() {
                     {int.status === 'connected' ? 'Conectado' : int.status === 'disconnected' ? 'Desconectado' : 'Em breve'}
                   </Badge>
                 </div>
-                {int.status === 'disconnected' && (
-                  <button className="flex items-center gap-1 mt-3 text-xs text-blue-brand hover:underline cursor-pointer">
-                    <Link size={12} /> Conectar
-                  </button>
-                )}
               </Card>
             ))}
           </div>
         </div>
       )}
 
-      {/* ────────── TAB 3: CERTIFICADOS NF-e ────────── */}
       {tab === 'nfce' && (
         <>
           <div className="grid grid-cols-4 gap-4">
@@ -232,28 +232,23 @@ export function IntegracoesPage() {
             <Card><p className="text-sm text-text-secondary">Homologação</p><p className="text-2xl font-semibold text-warning mt-1">{mockCertificates.filter(c => c.ambiente === 'homologacao').length}</p></Card>
           </div>
 
-          {/* Upload Certificate Card */}
           <Card header={<span className="font-heading text-base font-medium">Gerenciar certificados digitais</span>}>
             <div className="border-2 border-dashed border-border-strong rounded-xl p-8 text-center hover:border-blue-brand transition-colors cursor-pointer" onClick={() => setShowUploadCert(true)}>
               <Upload size={40} className="mx-auto text-text-muted mb-3" />
-              <p className="text-text-primary font-medium">Arraste seu certificado digital aqui ou clique para selecionar</p>
+              <p className="text-text-primary font-medium">Clique para simular upload de certificado</p>
               <div className="flex justify-center gap-2 mt-3">
                 <Badge variant="blue">.pfx</Badge>
                 <Badge variant="blue">.p12</Badge>
                 <Badge variant="gold">A1</Badge>
                 <Badge variant="gold">A3</Badge>
               </div>
-              <p className="text-xs text-text-muted mt-2">Formatos aceitos: PFX, P12 · Máximo 5MB</p>
             </div>
 
-            {/* Certificates List */}
             <div className="mt-6 space-y-3">
               {mockCertificates.map((cert) => (
                 <div key={cert.id} className="flex items-center justify-between p-4 rounded-lg border border-border">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      cert.diasRestantes <= 30 ? 'bg-danger-pale' : 'bg-success-pale'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${cert.diasRestantes <= 30 ? 'bg-danger-pale' : 'bg-success-pale'}`}>
                       <Shield size={20} className={cert.diasRestantes <= 30 ? 'text-danger' : 'text-success'} />
                     </div>
                     <div>
@@ -271,17 +266,12 @@ export function IntegracoesPage() {
                         {cert.diasRestantes} dias restantes
                       </p>
                     </div>
-                    {cert.diasRestantes <= 30 ? (
-                      <Button variant="danger" size="sm">Renovar</Button>
-                    ) : (
-                      <Badge variant="green"><CheckCircle size={12} /> Ativo</Badge>
-                    )}
+                    <Badge variant="green"><CheckCircle size={12} /> Ativo</Badge>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* NF-e service info */}
             <div className="mt-6 p-4 rounded-lg bg-blue-pale border border-blue-muted">
               <div className="flex items-start gap-3">
                 <FlaskConical size={18} className="text-blue-mid mt-0.5" />
@@ -289,14 +279,12 @@ export function IntegracoesPage() {
                   <p className="text-sm font-medium text-blue-mid">Ambiente de homologação disponível</p>
                   <p className="text-xs text-text-secondary mt-0.5">
                     Antes de emitir em produção, utilize o ambiente de homologação da SEFAZ para testar suas notas fiscais sem valor fiscal.
-                    <button className="text-blue-brand hover:underline ml-1 cursor-pointer">Acessar homologação →</button>
                   </p>
                 </div>
               </div>
             </div>
           </Card>
 
-          {/* Upload Certificate Modal */}
           <Modal open={showUploadCert} onClose={() => setShowUploadCert(false)} title="Upload de certificado digital">
             <div className="space-y-4">
               <div className="border-2 border-dashed border-border-strong rounded-xl p-6 text-center">
@@ -310,44 +298,25 @@ export function IntegracoesPage() {
                   <>
                     <Upload size={28} className="mx-auto text-text-muted mb-2" />
                     <p className="text-sm text-text-primary font-medium">Selecione o arquivo do certificado</p>
-                    <p className="text-xs text-text-muted mt-1">PFX ou P12</p>
                     <Button variant="secondary" size="sm" className="mt-3" onClick={() => setCertUploaded('certificado_homologacao.pfx')}>
-                      Selecionar arquivo
+                      Simular seleção
                     </Button>
                   </>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Senha do certificado</label>
-                <input type="password" className="w-full px-3 py-2 rounded-lg border border-border-strong text-sm outline-none focus:border-blue-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]" placeholder="Digite a senha" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Ambiente</label>
-                <div className="flex gap-3">
-                  <label className="flex items-center gap-2 p-3 rounded-lg border border-border cursor-pointer hover:bg-blue-pale/30">
-                    <input type="radio" name="ambiente" defaultChecked className="accent-blue-brand" />
-                    <span className="text-sm">Homologação (testes)</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-3 rounded-lg border border-border cursor-pointer hover:bg-blue-pale/30">
-                    <input type="radio" name="ambiente" className="accent-blue-brand" />
-                    <span className="text-sm">Produção</span>
-                  </label>
-                </div>
-              </div>
-              <Button className="w-full" disabled={!certUploaded}>Enviar certificado</Button>
+              <Button className="w-full" disabled={!certUploaded}>Salvar certificado</Button>
             </div>
           </Modal>
         </>
       )}
 
-      {/* ────────── TAB 4: MARKETPLACE ────────── */}
       {tab === 'marketplace' && (
         <div className="space-y-4">
           <p className="text-sm text-text-secondary">Conecte-se a marketplaces e plataformas para ampliar sua captação de pacientes.</p>
           <div className="grid grid-cols-2 gap-4">
             {[
               { name: 'Doctoralia', status: 'coming-soon', desc: 'Agenda online e reputação' },
-              { name: 'Google Meu Negócio', status: 'coming-soon', desc: 'Sinconizar avaliações' },
+              { name: 'Google Meu Negócio', status: 'coming-soon', desc: 'Sincronizar avaliações' },
               { name: 'Instagram/Facebook', status: 'coming-soon', desc: 'Agendamento via redes sociais' },
               { name: 'Tasy (Philips)', status: 'coming-soon', desc: 'Integração hospitalar' },
             ].map((item) => (

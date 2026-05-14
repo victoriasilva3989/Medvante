@@ -65,6 +65,12 @@ export const useAuthStore = create<AuthState>()(
     }
 
     if (allowedLogins[email]) {
+      const demoPasswords: Record<string, string> = {
+        'admin@medvante.com.br': 'admin123',
+        'produtor@medvante.com.br': 'produtor123',
+        'suporte@medvante.com.br': 'suporte123',
+      }
+      if (demoPasswords[email] !== password) return false
       const info = allowedLogins[email]
       set({
         user: {
@@ -175,7 +181,27 @@ export const useAuthStore = create<AuthState>()(
     set({ user: originalUser, originalUser: null, impersonatedClient: null })
   },
 
-  getMockClientList: () => [],
+  getMockClientList: () => {
+    const registered = get().registeredUsers
+    const clients: MockClient[] = registered.map((u, i) => ({
+      id: 'client-' + i,
+      nome: u.email.split('@')[0],
+      email: u.email,
+      crm: String(100000 + i),
+      planStatus: i === 0 ? 'active' : i === 1 ? 'trial' : 'expired',
+      planType: i === 0 ? 'pro' : undefined,
+      lastAccess: new Date().toISOString(),
+      faturamento: i === 0 ? 45000 : undefined,
+    }))
+    if (clients.length === 0) {
+      clients.push(
+        { id: 'demo-1', nome: 'Clínica Mendes', email: 'mendes@clinica.com.br', crm: '123456', planStatus: 'active', planType: 'clinic', lastAccess: new Date().toISOString(), faturamento: 128000 },
+        { id: 'demo-2', nome: 'Dr. Carlos Silva', email: 'carlos@silva.com', crm: '789012', planStatus: 'trial', planType: 'starter', lastAccess: new Date().toISOString(), faturamento: 15000 },
+        { id: 'demo-3', nome: 'Clínica Oliveira', email: 'oliveira@clinica.com', crm: '345678', planStatus: 'expired', planType: undefined, lastAccess: undefined, faturamento: undefined },
+      )
+    }
+    return clients
+  },
 
   getPasswordForEmail: (email: string) => {
     const demoPasswords: Record<string, string> = {
