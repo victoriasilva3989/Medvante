@@ -3,9 +3,9 @@ builder = "nixpacks"
 buildCommand = "npm install && npm run build"
 
 [deploy]
-startCommand = "node dist/app.js"
+startCommand = "PORT=3000 node dist/app.js"
 healthcheckPath = "/api/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 60
 
 [service]
 ports = [{ port = 3000, protocol = "http" }]
