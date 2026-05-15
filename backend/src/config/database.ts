@@ -5,6 +5,11 @@ if (!DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required')
 }
 
+const maskedUrl = DATABASE_URL.length > 30
+  ? DATABASE_URL.slice(0, 30) + '...'
+  : DATABASE_URL
+console.log(`[database] DATABASE_URL prefix: ${maskedUrl} (NODE_ENV=${process.env.NODE_ENV || 'development'})`)
+
 const pool = new pg.Pool({
   connectionString: DATABASE_URL,
   max: 20,

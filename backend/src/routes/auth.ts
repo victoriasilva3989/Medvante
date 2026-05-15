@@ -52,6 +52,9 @@ authRouter.post('/register', validateBody(registerSchema), async (req, res) => {
   const { email, password, nome, role } = req.body
   const ip = getIp(req)
 
+  const dbUrl = (process.env.DATABASE_URL || '(not set)').slice(0, 30) + '...'
+  console.log(`[auth/register] DATABASE_URL prefix: ${dbUrl} | email: ${email} | NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
+
   try {
     const existing = await query('SELECT id FROM usuarios WHERE email = $1', [email])
     if (existing.rows.length > 0) {
