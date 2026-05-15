@@ -91,8 +91,9 @@ async function start(): Promise<void> {
     console.error('[app] migration error:', (err as Error).message)
   }
 
-  const server = app.listen(PORT, () => {
-    console.log(`[medvante-backend] running on port ${PORT} (${process.env.NODE_ENV || 'development'})`)
+  const host = '0.0.0.0'
+  const server = app.listen(PORT, host, () => {
+    console.log(`[medvante-backend] running on ${host}:${PORT} (${process.env.NODE_ENV || 'development'})`)
 
     if (process.env.NODE_ENV === 'production' || process.env.START_JOBS === 'true') {
       iniciarJob()
