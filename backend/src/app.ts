@@ -1,12 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
 
-// Railway: força PORT=3000 para o healthcheck funcionar.
-// Railway sempre injeta RAILWAY_SERVICE_NAME no runtime.
-// O startCommand também já define PORT=3000 (redundância deliberada).
-if (process.env.RAILWAY_SERVICE_NAME || process.env.NODE_ENV === 'production') {
-  process.env.PORT = '3000'
-}
 import cors from 'cors'
 import { validateEnv } from './utils/envValidator.js'
 import { securityHeaders, removePoweredBy, additionalSecurityHeaders, noCacheApi } from './middleware/security.js'
@@ -48,10 +42,6 @@ app.use(sanitizeParams)
 app.use(sanitizeQuery)
 
 app.use(generalLimiter)
-
-app.get('/', (_req, res) => {
-  res.json({ status: 'ok', app: 'medvante-backend' })
-})
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
