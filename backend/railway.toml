@@ -4,5 +4,5 @@ buildCommand = "npm install && npm run build"
 
 [deploy]
 startCommand = "node dist/app.js"
-healthcheckPath = "/api/health"
+healthcheckPath = "/"
 healthcheckTimeout = 60

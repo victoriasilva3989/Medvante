@@ -67,6 +67,10 @@ app.use(sanitizeQuery)
 
 app.use(generalLimiter)
 
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
