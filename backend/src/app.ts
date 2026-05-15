@@ -13,7 +13,6 @@ import { nfseRouter } from './routes/nfse.js'
 import { openFinanceRouter } from './routes/openfinance.js'
 import { certificadoRouter } from './routes/certificado.js'
 import { iniciarJob } from './jobs/vasculharNfe.js'
-import { httpsMiddleware } from './middleware/https.js'
 import { errorLogger } from './utils/logger.js'
 import { runMigrations } from './migrations/run.js'
 
@@ -29,8 +28,6 @@ app.use(securityHeaders)
 app.use(removePoweredBy)
 app.use(additionalSecurityHeaders)
 app.use(noCacheApi)
-app.use(httpsMiddleware)
-
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
