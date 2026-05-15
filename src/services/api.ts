@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios'
 const TOKEN_KEY = 'medvante-token'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 })

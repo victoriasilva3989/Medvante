@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
   login: async (email: string, password: string) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/login`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
   register: async (data: RegisterData) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/register`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/register`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -140,7 +140,7 @@ export const useAuthStore = create<AuthState>()(
     const token = localStorage.getItem(TOKEN_KEY)
     if (token) {
       fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/logout`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/logout`,
         { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
       ).catch(() => {})
     }
