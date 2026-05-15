@@ -102,6 +102,6 @@ async function runMigrations() {
 }
 
 runMigrations().catch((err) => {
-  console.error('[migrate] error:', err.message)
+  console.error('[migrate] error:', err && err.stack ? err.stack : err)
   process.exit(1)
 })
