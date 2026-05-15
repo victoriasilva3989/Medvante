@@ -28,10 +28,29 @@ app.use(securityHeaders)
 app.use(removePoweredBy)
 app.use(additionalSecurityHeaders)
 app.use(noCacheApi)
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+const corsOptions: cors.CorsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true)
+
+    const allowed = [
+      'http://localhost:5173',
+      process.env.FRONTEND_URL,
+      'https://medvante-f8gd.vercel.app',
+    ].filter(Boolean) as string[]
+
+    if (allowed.includes(origin)) return callback(null, true)
+
+    if (origin.endsWith('.vercel.app')) return callback(null, true)
+
+    console.log(`[cors] blocked origin: ${origin}`)
+    callback(null, false)
+  },
   credentials: true,
-}))
+  optionsSuccessStatus: 200,
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 
 app.use(express.json({ limit: '1mb' }))
 app.use(sanitizeBody)

@@ -8,7 +8,7 @@ export const securityHeaders = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:5173'].filter(Boolean) as string[],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:5173', 'https://medvante-f8gd.vercel.app', 'https://*.vercel.app'].filter(Boolean) as string[],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
