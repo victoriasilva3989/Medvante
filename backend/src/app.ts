@@ -22,6 +22,13 @@ validateEnv()
 const app = express()
 const PORT = parseInt(process.env.PORT || '3000', 10)
 
+// Railway injeta PORT automaticamente via [service]. Se não vier, fallback 3000
+if (process.env.RAILWAY_SERVICE_NAME) {
+  console.log(`[app] Railway detected, PORT=${process.env.PORT || '3000 (fallback)'}`)
+} else {
+  console.log(`[app] local dev, PORT=${PORT}`)
+}
+
 app.use(securityHeaders)
 app.use(removePoweredBy)
 app.use(additionalSecurityHeaders)
