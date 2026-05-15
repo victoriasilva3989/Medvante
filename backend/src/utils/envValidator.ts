@@ -18,9 +18,11 @@ export function validateEnv(): void {
     missing = true
   }
 
-  if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
-    console.error('[ENV] ERRO: FRONTEND_URL é obrigatório em produção')
-    missing = true
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.FRONTEND_URL) {
+      console.warn('[ENV] AVISO: FRONTEND_URL não configurada. CORS pode bloquear o frontend.')
+      console.warn('[ENV] Configure FRONTEND_URL com a URL do Vercel após o deploy do frontend.')
+    }
   }
 
   if (missing) {

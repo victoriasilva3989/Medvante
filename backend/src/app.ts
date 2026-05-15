@@ -4,7 +4,7 @@ import cors from 'cors'
 import { validateEnv } from './utils/envValidator.js'
 import { securityHeaders, removePoweredBy, additionalSecurityHeaders, noCacheApi } from './middleware/security.js'
 import { sanitizeBody, sanitizeParams, sanitizeQuery } from './middleware/sanitize.js'
-import { generalLimiter, uploadCertLimiter, nfeScanLimiter, loginLimiter } from './middleware/rateLimiter.js'
+import { generalLimiter } from './middleware/rateLimiter.js'
 import { authRouter } from './routes/auth.js'
 import { nfeRouter } from './routes/nfe.js'
 import { nfeEntradaRouter } from './routes/nfe-entrada.js'
@@ -14,7 +14,9 @@ import { certificadoRouter } from './routes/certificado.js'
 import { iniciarJob } from './jobs/vasculharNfe.js'
 import { httpsMiddleware } from './middleware/https.js'
 import { errorLogger } from './utils/logger.js'
+import { runMigrations } from './migrations/run.js'
 
+console.log('[app] starting MedVante backend...')
 validateEnv()
 
 const app = express()
@@ -51,15 +53,29 @@ app.use('/api/certificado', certificadoRouter)
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   errorLogger.error('Unhandled error', { error: err.message, stack: err.stack })
+  console.error('[app] unhandled error:', err.message)
   res.status(500).json({ error: 'Erro interno do servidor' })
 })
 
-const server = app.listen(PORT, () => {
-  console.log(`[medvante-backend] running on port ${PORT} (${process.env.NODE_ENV || 'development'})`)
-
-  if (process.env.NODE_ENV === 'production' || process.env.START_JOBS === 'true') {
-    iniciarJob()
+async function start(): Promise<void> {
+  try {
+    await runMigrations()
+  } catch (err) {
+    console.error('[app] migration error:', (err as Error).message)
   }
+
+  const server = app.listen(PORT, () => {
+    console.log(`[medvante-backend] running on port ${PORT} (${process.env.NODE_ENV || 'development'})`)
+
+    if (process.env.NODE_ENV === 'production' || process.env.START_JOBS === 'true') {
+      iniciarJob()
+    }
+  })
+}
+
+start().catch((err) => {
+  console.error('[app] fatal error:', err.message)
+  process.exit(1)
 })
 
-export { app, server }
+export { app }

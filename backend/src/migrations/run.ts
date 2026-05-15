@@ -6,7 +6,12 @@ import { query } from '../db/connection.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-async function runMigrations() {
+const MIGRATION_DIRS = [
+  __dirname,
+  join(__dirname, '..', '..', 'migrations'),
+]
+
+export async function runMigrations(): Promise<void> {
   console.log('[migrate] running migrations...')
 
   await query(`
@@ -17,16 +22,10 @@ async function runMigrations() {
     )
   `)
 
-  // Collect all .sql files from both migration directories
-  const dirs = [
-    __dirname,
-    join(__dirname, '..', '..', 'migrations'),
-  ]
-
   const seen = new Set<string>()
   const files: string[] = []
 
-  for (const dir of dirs) {
+  for (const dir of MIGRATION_DIRS) {
     try {
       for (const f of readdirSync(dir)) {
         if (f.endsWith('.sql') && !seen.has(f)) {
@@ -35,16 +34,15 @@ async function runMigrations() {
         }
       }
     } catch {
-      // skip if dir doesn't exist
+      /* dir may not exist */
     }
   }
 
-  // Skip old schema, use the new _inicial version
   const filtered = files.filter(f => f !== '001_schema.sql').sort()
 
   if (filtered.length === 0) {
     console.log('[migrate] no migration files found')
-    process.exit(0)
+    return
   }
 
   for (const file of filtered) {
@@ -54,14 +52,13 @@ async function runMigrations() {
       continue
     }
 
-    // Try both directories
     let sql: string | null = null
-    for (const dir of dirs) {
+    for (const dir of MIGRATION_DIRS) {
       try {
         sql = readFileSync(join(dir, file), 'utf-8')
         break
       } catch {
-        // try next
+        /* try next */
       }
     }
 
@@ -70,7 +67,6 @@ async function runMigrations() {
       continue
     }
 
-    // Split into individual statements and execute each
     const statements = sql
       .split(';')
       .map(s => s.trim())
@@ -81,7 +77,6 @@ async function runMigrations() {
         await query(stmt)
       } catch (err) {
         const msg = (err as Error).message
-        // Ignore "already exists" errors for idempotency
         if (
           !msg.includes('already exists') &&
           !msg.includes('duplicate key') &&
@@ -98,10 +93,17 @@ async function runMigrations() {
   }
 
   console.log('[migrate] done')
-  process.exit(0)
 }
 
-runMigrations().catch((err) => {
-  console.error('[migrate] error:', err && err.stack ? err.stack : err)
-  process.exit(1)
-})
+const isMain = process.argv[1] && (
+  process.argv[1] === fileURLToPath(import.meta.url) ||
+  process.argv[1].endsWith('run.ts') ||
+  process.argv[1].endsWith('run.js')
+)
+
+if (isMain) {
+  runMigrations().catch((err: Error) => {
+    console.error('[migrate] error:', err && err.stack ? err.stack : err)
+    process.exit(1)
+  })
+}
