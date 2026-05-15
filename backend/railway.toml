@@ -6,18 +6,3 @@ buildCommand = "npm install && npm run build"
 startCommand = "node dist/app.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 60
-
-[service]
-ports = [{ port = 3000, protocol = "http" }]
-
-[[variables]]
-name = "PORT"
-value = "3000"
-
-[[variables]]
-name = "NODE_ENV"
-value = "production"
-
-[[variables]]
-name = "START_JOBS"
-value = "true"
