@@ -1,4 +1,4 @@
-import { query } from '../db/connection.js'
+import { query } from '../config/database.js'
 
 interface NfeItem {
   codigo: string

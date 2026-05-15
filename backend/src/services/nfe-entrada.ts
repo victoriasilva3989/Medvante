@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { parseStringPromise } from 'xml2js'
-import { query } from '../db/connection.js'
+import { query } from '../config/database.js'
 import { DISTRIBUICAO_DFE } from '../config/sefaz-urls.js'
 
 const AMBIENTE = process.env.SEFAZ_AMBIENTE || '2'

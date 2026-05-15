@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { readFileSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { query } from '../db/connection.js'
+import { query } from '../config/database.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

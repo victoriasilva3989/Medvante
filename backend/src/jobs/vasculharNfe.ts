@@ -1,5 +1,5 @@
 import cron from 'node-cron'
-import { query } from '../db/connection.js'
+import { query } from '../config/database.js'
 import { vasculharNfeEntrada, salvarNotaEntrada } from '../services/nfe-entrada.js'
 import { processarAutoLancamento } from '../services/auto-lancamento.js'
 

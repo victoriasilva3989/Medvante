@@ -1,11 +1,12 @@
 import pg from 'pg'
 
+const DATABASE_URL = process.env.DATABASE_URL
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required')
+}
+
 const pool = new pg.Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  database: process.env.DB_NAME || 'medvante',
-  user: process.env.DB_USER || 'medvante',
-  password: process.env.DB_PASSWORD || 'medvante',
+  connectionString: DATABASE_URL,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

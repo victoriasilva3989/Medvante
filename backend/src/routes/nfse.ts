@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.js'
 import { validateBody } from '../middleware/validate.js'
 import { emitirNfse } from '../services/nfse.js'
-import { query } from '../db/connection.js'
+import { query } from '../config/database.js'
 import { securityLogger } from '../utils/logger.js'
 import { z } from 'zod'
 

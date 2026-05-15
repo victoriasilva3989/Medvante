@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.js'
 import { validateQuery } from '../middleware/validate.js'
-import { query } from '../db/connection.js'
+import { query } from '../config/database.js'
 import { executarVasculhagem } from '../jobs/vasculharNfe.js'
 import { nfeScanLimiter } from '../middleware/rateLimiter.js'
 import { securityLogger } from '../utils/logger.js'
