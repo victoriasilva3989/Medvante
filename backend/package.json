@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "lint": "eslint src/",
-    "migrate": "tsx src/migrations/run.ts",
+    "migrate": "node dist/migrations/run.js",
     "setup": "tsx scripts/setup-db.ts"
   },
   "dependencies": {
