@@ -1,3 +1,11 @@
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err?.stack || err)
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] unhandledRejection:', reason instanceof Error ? reason.stack : reason)
+})
+
 import 'dotenv/config'
 import express from 'express'
 
