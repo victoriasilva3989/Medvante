@@ -1,5 +1,12 @@
 import 'dotenv/config'
 import express from 'express'
+
+// Em produção (Railway), força PORT=3000.
+// O dotenv acima pode carregar .env local com PORT=3001 se Railway não injetar a variável.
+// Sobrescrevemos para garantir que o servidor escute na porta esperada pelo Railway.
+if (process.env.NODE_ENV === 'production') {
+  process.env.PORT = '3000'
+}
 import cors from 'cors'
 import { validateEnv } from './utils/envValidator.js'
 import { securityHeaders, removePoweredBy, additionalSecurityHeaders, noCacheApi } from './middleware/security.js'
@@ -22,12 +29,7 @@ validateEnv()
 const app = express()
 const PORT = parseInt(process.env.PORT || '3000', 10)
 
-// Railway injeta PORT automaticamente via [service]. Se não vier, fallback 3000
-if (process.env.RAILWAY_SERVICE_NAME) {
-  console.log(`[app] Railway detected, PORT=${process.env.PORT || '3000 (fallback)'}`)
-} else {
-  console.log(`[app] local dev, PORT=${PORT}`)
-}
+console.log(`[app] PORT=${PORT} (NODE_ENV=${process.env.NODE_ENV || 'development'})`)
 
 app.use(securityHeaders)
 app.use(removePoweredBy)

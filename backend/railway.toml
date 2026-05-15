@@ -11,6 +11,10 @@ healthcheckTimeout = 30
 ports = [{ port = 3000, protocol = "http" }]
 
 [[variables]]
+name = "PORT"
+value = "3000"
+
+[[variables]]
 name = "NODE_ENV"
 value = "production"
 
